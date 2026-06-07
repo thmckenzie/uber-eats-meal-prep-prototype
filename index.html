@@ -436,6 +436,20 @@ const MEALS = {
   ],
 };
 
+// ─── COURIER TIP ────────────────────────────────────────────────────────────
+// 20% is a fixed, non-discretionary tip built into the all-in Meal Prep price.
+const TIP_RATE = 0.20;
+const withTip = (basePrice) => Math.round(basePrice * (1 + TIP_RATE) * 100) / 100;
+const tipAmount = (subtotal) => Math.round(subtotal * TIP_RATE * 100) / 100;
+
+// Compute all-in price range for a partner from their meal data
+const partnerPriceRange = (partnerId) => {
+  const meals = MEALS[partnerId];
+  if (!meals || !meals.length) return '';
+  const prices = meals.map(m => m.price);
+  return `$${withTip(Math.min(...prices)).toFixed(2)} – $${withTip(Math.max(...prices)).toFixed(2)} / meal`;
+};
+
 // Delivery days: minimum 2 days from today so partner has prep time
 const getAvailableDays = () => {
   const today = new Date();
@@ -613,7 +627,8 @@ const HomeScreen = ({ onNav, onGoToMealPrep, onGoToPartnerBrowse, activeOrders }
               <div className="mp-partner-logo">{p.shortName}</div>
               <div className="mp-partner-name">{p.name}</div>
               <div className="mp-partner-desc">{p.tagline}</div>
-              <div className="mp-price">{p.priceRange}</div>
+              <div className="mp-price">{partnerPriceRange(p.id)}</div>
+              <div style={{fontSize:10,color:'#888',marginBottom:5}}>Includes courier tip · All-in with Uber One</div>
               <UberOneBadge />
               {activeOrders && activeOrders[p.id] && (
                 <div style={{fontSize:11,color:'#06C167',fontWeight:600,marginTop:6}}>● Active order</div>
@@ -648,7 +663,8 @@ const PartnerSelectScreen = ({ onBack, onSelectPartner, onNav, activeOrders }) =
             </div>
             <div className="ps-name">{p.name}</div>
             <div className="ps-tagline">{p.description}</div>
-            <div className="ps-price">{p.priceRange}</div>
+            <div className="ps-price">{partnerPriceRange(p.id)}</div>
+          <div style={{fontSize:11,color:'#888',marginBottom:6}}>Includes 20% courier tip · All-in with Uber One</div>
             <div className="ps-macro">💪 {p.macroHighlight}</div>
             <UberOneBadge />
             {hasOrder && (
@@ -869,7 +885,7 @@ const MealBrowseScreen = ({ partner, onBack, onContinue, onNav, activeOrderForPa
                   <span className="macro-badge cal">{meal.cal} cal</span>
                 </div>
                 <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:4}}>
-                  <div className="meal-price">${meal.price.toFixed(2)}</div>
+                  <div className="meal-price">${withTip(meal.price).toFixed(2)}</div>
                   {isSelected && !swapMode && !removePrompt && (
                     <div className="meal-qty-controls" onClick={e => e.stopPropagation()}>
                       <button className="meal-qty-btn" onClick={() => removeMeal(meal.id)}>−</button>
@@ -896,7 +912,7 @@ const MealBrowseScreen = ({ partner, onBack, onContinue, onNav, activeOrderForPa
       {!swapMode && (
         <div className="running-total-bar">
           <div>
-            <div className="rt-text">${totalPrice.toFixed(2)} total</div>
+            <div className="rt-text">${(totalPrice * (1 + TIP_RATE)).toFixed(2)} total</div>
             <div className="rt-count">
               {totalSelected} of {mealCount} selected
               {totalSelected < mealCount ? ` — pick ${mealCount - totalSelected} more` : ''}
@@ -975,7 +991,9 @@ const CheckoutScreen = ({ partner, selectedMeals, mealCount: initCount, onBack, 
   const selectedDay2 = availDays.find(d => d.short === selectedDay2Key) || availDays[2] || availDays[0];
 
   const avgPricePerMeal = selectedMeals.length ? selectedMeals.reduce((s,m)=>s+m.price,0) / selectedMeals.length : 0;
-  const total = avgPricePerMeal * mealCount;
+  const mealSubtotal = avgPricePerMeal * mealCount;
+  const courierTip   = tipAmount(mealSubtotal);
+  const grandTotal   = mealSubtotal + courierTip;
 
   const CARDS = [
     { id: 'visa2416', type: 'VISA', last4: '2416', color: '#1a1f71' },
@@ -993,7 +1011,7 @@ const CheckoutScreen = ({ partner, selectedMeals, mealCount: initCount, onBack, 
     const delivDays = deliveryPref === 'split'
       ? [selectedDay.short, selectedDay2.short]
       : [selectedDay.short];
-    onConfirm(selectedMeals, mealCount, delivDays, deliveryPref, total, repeatNextWeek, selectedDay.date);
+    onConfirm(selectedMeals, mealCount, delivDays, deliveryPref, grandTotal, repeatNextWeek, selectedDay.date);
     setShowConfirmModal(false);
   };
 
@@ -1040,7 +1058,7 @@ const CheckoutScreen = ({ partner, selectedMeals, mealCount: initCount, onBack, 
                 // n === mealCount: no-op
               }}>
               {n} meals<br/>
-              <span style={{fontSize:11,fontWeight:500}}>${(avgPricePerMeal*n).toFixed(2)}</span>
+              <span style={{fontSize:11,fontWeight:500}}>${(avgPricePerMeal * n * (1 + TIP_RATE)).toFixed(2)}</span>
             </button>
           ))}
         </div>
@@ -1150,15 +1168,20 @@ const CheckoutScreen = ({ partner, selectedMeals, mealCount: initCount, onBack, 
             <div style={{fontSize:12,color:'#888',marginBottom:10,fontWeight:500}}>
               Two separate orders, one per week
             </div>
+            {/* Per-week breakdown (with tip shown once as part of each week) */}
             <div className="price-row">
               <span className="price-row-label">This week · {mealCount} meals</span>
-              <span className="price-row-val">${total.toFixed(2)}</span>
+              <span className="price-row-val">${mealSubtotal.toFixed(2)}</span>
             </div>
             <div className="price-row">
-              <span className="price-row-label" style={{color:'#555'}}>Next week · same {mealCount} meals</span>
-              <span className="price-row-val" style={{color:'#555'}}>${total.toFixed(2)}</span>
+              <span className="price-row-label" style={{color:'#777'}}>Courier tip (included)</span>
+              <span className="price-row-val" style={{color:'#777'}}>${courierTip.toFixed(2)}</span>
             </div>
-            <div className="price-row" style={{alignItems:'flex-start',marginTop:4}}>
+            <div className="price-row" style={{borderBottom:'1px solid #f0f0f0',paddingBottom:10,marginBottom:6}}>
+              <span className="price-row-label" style={{color:'#555'}}>Next week · same {mealCount} meals</span>
+              <span className="price-row-val" style={{color:'#555'}}>${grandTotal.toFixed(2)}</span>
+            </div>
+            <div className="price-row" style={{alignItems:'flex-start'}}>
               <div style={{display:'flex',alignItems:'center',gap:4}}>
                 <span className="price-row-label">Delivery (×2 weeks)</span>
                 <span style={{fontSize:12,color:'#bbb'}}>ⓘ</span>
@@ -1175,17 +1198,24 @@ const CheckoutScreen = ({ partner, selectedMeals, mealCount: initCount, onBack, 
             <div style={{height:1,background:'#000',margin:'8px 0'}}/>
             <div className="price-row total">
               <span className="price-row-label">Total charged today</span>
-              <span className="price-row-val">${(total * 2).toFixed(2)}</span>
+              <span className="price-row-val">${(grandTotal * 2).toFixed(2)}</span>
             </div>
             <div style={{fontSize:11,color:'#888',marginTop:4}}>
-              Charged as two separate transactions of ${total.toFixed(2)} each.
+              Charged as two separate transactions of ${grandTotal.toFixed(2)} each. Courier tip included in each.
             </div>
           </>
         ) : (
           <>
             <div className="price-row">
-              <span className="price-row-label">{mealCount} meals</span>
-              <span className="price-row-val">${total.toFixed(2)}</span>
+              <span className="price-row-label">Meals ({mealCount})</span>
+              <span className="price-row-val">${mealSubtotal.toFixed(2)}</span>
+            </div>
+            <div className="price-row">
+              <span className="price-row-label">Courier tip (included)</span>
+              <span className="price-row-val">${courierTip.toFixed(2)}</span>
+            </div>
+            <div style={{fontSize:11,color:'#aaa',marginTop:-4,marginBottom:8,lineHeight:1.4}}>
+              A 20% courier tip is included in every Meal Prep order. Cold delivery requires extra care — we make sure your courier is compensated for it.
             </div>
             <div className="price-row" style={{alignItems:'flex-start'}}>
               <div style={{display:'flex',alignItems:'center',gap:4}}>
@@ -1204,7 +1234,7 @@ const CheckoutScreen = ({ partner, selectedMeals, mealCount: initCount, onBack, 
             <div style={{height:1,background:'#f0f0f0',margin:'6px 0'}}/>
             <div className="price-row total">
               <span className="price-row-label">Total</span>
-              <span className="price-row-val">${total.toFixed(2)}</span>
+              <span className="price-row-val">${grandTotal.toFixed(2)}</span>
             </div>
           </>
         )}
@@ -1234,7 +1264,7 @@ const CheckoutScreen = ({ partner, selectedMeals, mealCount: initCount, onBack, 
 
       <div className="savings-banner">
         <span style={{color:'#c8922a'}}>⚡</span>
-        <span>Saving {repeatNextWeek ? '$11.98' : '$5.99'} on delivery with Uber One</span>
+        <span>Saving {repeatNextWeek ? '$11.98' : '$5.99'} on delivery with Uber One · courier tip included</span>
       </div>
 
       {/* Address, phone, delivery window (IMG_6367 pattern) */}
@@ -1276,11 +1306,11 @@ const CheckoutScreen = ({ partner, selectedMeals, mealCount: initCount, onBack, 
 
       <div className="sticky-cta">
         <button className="cta-btn green" onClick={() => setShowConfirmModal(true)}>
-          Confirm Meal Prep — ${repeatNextWeek ? (total * 2).toFixed(2) : total.toFixed(2)}
+          Confirm Meal Prep — ${repeatNextWeek ? (grandTotal * 2).toFixed(2) : grandTotal.toFixed(2)}
         </button>
         {repeatNextWeek && (
           <div style={{fontSize:11,color:'#555',textAlign:'center',marginTop:6,fontWeight:500}}>
-            ${total.toFixed(2)} this week + ${total.toFixed(2)} next week
+            ${grandTotal.toFixed(2)} this week + ${grandTotal.toFixed(2)} next week
           </div>
         )}
         <div style={{fontSize:11,color:'#aaa',textAlign:'center',marginTop:4}}>
@@ -1464,7 +1494,8 @@ const PartnerSwitchScreen = ({ currentPartner, onTryOther, onMaybeLater, fromCan
               <div style={{fontSize:12,color:'#666'}}>{other.tagline}</div>
             </div>
           </div>
-          <div style={{fontSize:14,fontWeight:600,marginBottom:4}}>{other.priceRange}</div>
+          <div style={{fontSize:14,fontWeight:600,marginBottom:4}}>{partnerPriceRange(other.id)}</div>
+          <div style={{fontSize:11,color:'#888',marginBottom:4}}>Includes 20% courier tip</div>
           <div style={{fontSize:13,color:'#555',marginBottom:10}}>💪 {other.macroHighlight}</div>
           <UberOneBadge />
         </div>
