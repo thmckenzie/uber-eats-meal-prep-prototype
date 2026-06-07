@@ -1,0 +1,2231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=390, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Uber Eats — Meal Prep</title>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:#1a1a1a;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;}
+#root{width:390px;min-height:100vh;background:#f6f6f6;position:relative;overflow:hidden;}
+
+/* Phone shell */
+.phone-shell{width:390px;min-height:100vh;position:relative;overflow:hidden;}
+
+/* Screen system */
+.screen-container{position:relative;width:100%;height:100vh;overflow:hidden;}
+.screen{position:absolute;top:0;left:0;width:100%;height:100%;background:#f6f6f6;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:70px;}
+.screen.white-bg{background:#fff;}
+.slide-enter-right{animation:slideInRight 0.3s ease forwards;}
+.slide-enter-left{animation:slideInLeft 0.3s ease forwards;}
+.slide-exit-left{animation:slideOutLeft 0.3s ease forwards;}
+.slide-exit-right{animation:slideOutRight 0.3s ease forwards;}
+.fade-enter{animation:fadeIn 0.25s ease forwards;}
+
+@keyframes slideInRight{from{transform:translateX(100%);}to{transform:translateX(0);}}
+@keyframes slideInLeft{from{transform:translateX(-100%);}to{transform:translateX(0);}}
+@keyframes slideOutLeft{from{transform:translateX(0);}to{transform:translateX(-100%);}}
+@keyframes slideOutRight{from{transform:translateX(0);}to{transform:translateX(100%);}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+/* Status bar */
+.status-bar{display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;background:#fff;font-size:15px;font-weight:600;letter-spacing:-0.3px;}
+.status-icons{display:flex;align-items:center;gap:6px;}
+
+/* Location header */
+.location-header{display:flex;justify-content:space-between;align-items:center;padding:4px 16px 12px;background:#fff;}
+.location-address{display:flex;align-items:center;gap:4px;font-size:17px;font-weight:700;letter-spacing:-0.4px;}
+.location-arrow{font-size:12px;color:#000;margin-top:1px;}
+.bell-btn{width:40px;height:40px;border-radius:50%;background:#f6f6f6;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;}
+
+/* Category chips */
+.chips-row{display:flex;gap:8px;padding:8px 16px 4px;overflow-x:auto;scrollbar-width:none;background:#fff;}
+.chips-row::-webkit-scrollbar{display:none;}
+.chip{display:flex;align-items:center;gap:5px;padding:8px 14px;border-radius:22px;font-size:14px;font-weight:500;white-space:nowrap;cursor:pointer;border:none;background:#f0f0f0;color:#000;flex-shrink:0;}
+.chip.active{background:#000;color:#fff;}
+.chip-emoji{font-size:15px;}
+
+/* Icon grid */
+.icon-grid{display:flex;gap:4px;padding:12px 16px;overflow-x:auto;scrollbar-width:none;background:#fff;}
+.icon-grid::-webkit-scrollbar{display:none;}
+.icon-item{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:64px;cursor:pointer;flex-shrink:0;}
+.icon-box{width:60px;height:60px;border-radius:14px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:26px;}
+.icon-label{font-size:11px;font-weight:500;color:#000;text-align:center;}
+
+/* Filter pills */
+.filter-pills{display:flex;gap:8px;padding:12px 16px;overflow-x:auto;scrollbar-width:none;background:#fff;border-bottom:6px solid #f6f6f6;}
+.filter-pills::-webkit-scrollbar{display:none;}
+.filter-pill{display:flex;align-items:center;gap:5px;padding:8px 14px;border-radius:22px;font-size:13px;font-weight:500;white-space:nowrap;border:1.5px solid #e0e0e0;background:#fff;color:#000;cursor:pointer;flex-shrink:0;}
+
+/* Shelves */
+.shelf{background:#fff;padding:16px 0 8px;margin-bottom:6px;}
+.shelf-header{display:flex;justify-content:space-between;align-items:center;padding:0 16px 12px;}
+.shelf-title{font-size:20px;font-weight:800;letter-spacing:-0.5px;}
+.shelf-see-all{font-size:14px;font-weight:600;color:#000;cursor:pointer;text-decoration:none;}
+.shelf-scroll{display:flex;gap:12px;padding:0 16px;overflow-x:auto;scrollbar-width:none;}
+.shelf-scroll::-webkit-scrollbar{display:none;}
+
+/* Restaurant cards */
+.resto-card{min-width:180px;max-width:180px;border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.08);cursor:pointer;flex-shrink:0;}
+.resto-card-img{width:100%;height:110px;background:#e8e8e8;display:flex;align-items:center;justify-content:center;font-size:32px;position:relative;}
+.resto-badge{position:absolute;top:8px;left:8px;background:#06C167;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;}
+.resto-badge-red{background:#e74c3c;}
+.resto-info{padding:10px;}
+.resto-name{font-size:14px;font-weight:700;margin-bottom:3px;}
+.resto-meta{font-size:12px;color:#666;display:flex;align-items:center;gap:4px;}
+.resto-rating{font-size:12px;font-weight:600;color:#000;}
+
+/* Meal Prep shelf cards */
+.mp-partner-card{min-width:200px;border-radius:16px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.08);padding:14px;cursor:pointer;flex-shrink:0;border:2px solid transparent;transition:border-color 0.2s;}
+.mp-partner-card:active{border-color:#06C167;}
+.mp-partner-logo{width:44px;height:44px;border-radius:12px;background:#000;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px;}
+.mp-partner-name{font-size:15px;font-weight:800;margin-bottom:2px;}
+.mp-partner-desc{font-size:12px;color:#666;margin-bottom:6px;line-height:1.3;}
+.mp-price{font-size:13px;font-weight:600;color:#000;margin-bottom:6px;}
+.uber-one-badge{display:inline-flex;align-items:center;gap:3px;background:#06C167;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;}
+
+/* Nav bar */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:390px;height:68px;background:#fff;border-top:1px solid #e8e8e8;display:flex;justify-content:space-around;align-items:center;padding:0 8px 8px;z-index:100;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:8px 12px;flex:1;background:none;border:none;}
+.nav-icon{font-size:22px;color:#888;}
+.nav-icon.active{color:#06C167;}
+.nav-label{font-size:10px;font-weight:500;color:#888;}
+.nav-label.active{color:#06C167;font-weight:700;}
+
+/* Screen headers */
+.screen-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#fff;border-bottom:1px solid #f0f0f0;position:sticky;top:0;z-index:10;}
+.back-btn{width:36px;height:36px;border-radius:50%;background:#f0f0f0;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;}
+.header-title{font-size:17px;font-weight:700;letter-spacing:-0.3px;}
+.header-right{width:36px;display:flex;justify-content:flex-end;}
+
+/* Partner select screen */
+.partner-select-content{padding:16px;}
+.partner-select-title{font-size:26px;font-weight:900;letter-spacing:-0.8px;margin-bottom:4px;}
+.partner-select-sub{font-size:14px;color:#666;margin-bottom:20px;line-height:1.4;}
+.ps-card{background:#fff;border-radius:20px;padding:20px;margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,0.08);cursor:pointer;border:2px solid transparent;transition:all 0.2s;}
+.ps-card:active{border-color:#06C167;transform:scale(0.99);}
+.ps-logo{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff;margin-bottom:12px;letter-spacing:-0.5px;}
+.ps-name{font-size:20px;font-weight:800;margin-bottom:4px;letter-spacing:-0.5px;}
+.ps-tagline{font-size:13px;color:#666;margin-bottom:10px;line-height:1.4;}
+.ps-price{font-size:15px;font-weight:700;margin-bottom:6px;}
+.ps-macro{font-size:13px;color:#444;margin-bottom:12px;display:flex;align-items:center;gap:5px;}
+.ps-note{font-size:12px;color:#888;margin-top:10px;padding-top:10px;border-top:1px solid #f0f0f0;}
+
+/* Meal browse */
+.macro-filter-bar{background:#fff;padding:12px 16px;border-bottom:1px solid #f0f0f0;}
+.macro-filter-row{display:flex;gap:8px;align-items:center;overflow-x:auto;scrollbar-width:none;}
+.macro-filter-row::-webkit-scrollbar{display:none;}
+.macro-filter-chip{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:22px;border:1.5px solid #e0e0e0;background:#fff;font-size:13px;font-weight:500;white-space:nowrap;cursor:pointer;flex-shrink:0;}
+.macro-filter-chip.active{border-color:#06C167;background:#f0faf5;}
+.stepper-btn{width:24px;height:24px;border-radius:50%;border:1.5px solid #ccc;background:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;font-weight:600;flex-shrink:0;}
+.stepper-val{font-size:13px;font-weight:700;min-width:32px;text-align:center;}
+
+.count-selector{display:flex;gap:8px;padding:12px 16px;background:#fff;border-bottom:1px solid #f0f0f0;}
+.count-pill{flex:1;padding:9px;border-radius:22px;border:1.5px solid #e0e0e0;background:#fff;font-size:14px;font-weight:600;text-align:center;cursor:pointer;}
+.count-pill.active{border-color:#06C167;background:#06C167;color:#fff;}
+
+.meal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px 16px;}
+.meal-card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.07);cursor:pointer;position:relative;border:2px solid transparent;transition:border-color 0.15s;}
+.meal-card.selected{border-color:#06C167;}
+.meal-card-img{height:100px;background:#e8e8e8;display:flex;align-items:center;justify-content:center;font-size:32px;position:relative;}
+.meal-check{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:#06C167;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;}
+.meal-card-body{padding:9px;}
+.meal-name{font-size:13px;font-weight:700;line-height:1.2;margin-bottom:3px;}
+.meal-source{font-size:11px;color:#888;margin-bottom:6px;}
+.meal-macros{display:flex;gap:4px;margin-bottom:6px;}
+.macro-badge{font-size:10px;font-weight:600;padding:2px 6px;border-radius:8px;background:#f0f0f0;}
+.macro-badge.protein{background:#e8f5e9;color:#2e7d32;}
+.macro-badge.cal{background:#fff3e0;color:#e65100;}
+.meal-price{font-size:14px;font-weight:800;color:#06C167;}
+
+.running-total-bar{position:fixed;bottom:68px;left:50%;transform:translateX(-50%);width:390px;background:#fff;border-top:1px solid #e8e8e8;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;z-index:90;}
+.rt-text{font-size:14px;font-weight:600;color:#333;}
+.rt-count{font-size:12px;color:#888;margin-top:1px;}
+.continue-btn{padding:10px 20px;border-radius:22px;background:#06C167;color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;}
+.continue-btn:disabled{background:#ccc;cursor:not-allowed;}
+
+.conflict-banner{margin:12px 16px 0;padding:12px 14px;background:#fff8e1;border-radius:12px;border-left:3px solid #f59e0b;font-size:13px;color:#92400e;line-height:1.4;}
+
+/* Checkout */
+.checkout-section{background:#fff;margin-bottom:8px;padding:16px;}
+.checkout-section-title{font-size:16px;font-weight:800;margin-bottom:12px;letter-spacing:-0.3px;}
+.meal-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f5f5f5;}
+.meal-row:last-child{border-bottom:none;}
+.meal-row-left{flex:1;}
+.meal-row-name{font-size:14px;font-weight:600;}
+.meal-row-price{font-size:13px;color:#06C167;font-weight:700;margin-top:2px;}
+.swap-btn{font-size:13px;color:#000;font-weight:600;text-decoration:underline;cursor:pointer;border:none;background:none;padding:0;}
+
+.delivery-toggle{display:flex;background:#f0f0f0;border-radius:12px;padding:3px;}
+.dt-option{flex:1;padding:9px;border-radius:10px;text-align:center;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.dt-option.active{background:#fff;box-shadow:0 1px 4px rgba(0,0,0,0.12);}
+.delivery-desc{font-size:12px;color:#666;margin-top:8px;line-height:1.4;}
+
+.day-chips{display:flex;gap:8px;padding:12px 0 4px;overflow-x:auto;scrollbar-width:none;}
+.day-chips::-webkit-scrollbar{display:none;}
+.day-chip{padding:8px 14px;border-radius:22px;border:1.5px solid #e0e0e0;background:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.day-chip.selected{border-color:#06C167;background:#06C167;color:#fff;}
+
+.cutoff-box{background:#f6f6f6;border-radius:12px;padding:12px 14px;font-size:12px;color:#666;line-height:1.4;display:flex;gap:8px;align-items:flex-start;}
+.cutoff-icon{font-size:16px;flex-shrink:0;}
+
+.collapsible-header{display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:4px 0;}
+.collapsible-body{margin-top:10px;font-size:13px;color:#555;line-height:1.5;}
+.policy-item{padding:8px 0;border-bottom:1px solid #f0f0f0;}
+.policy-item:last-child{border-bottom:none;}
+.policy-title{font-weight:600;margin-bottom:3px;}
+
+.price-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;}
+.price-row-label{font-size:15px;color:#333;}
+.price-row-val{font-size:15px;font-weight:600;}
+.price-row.total .price-row-label{font-size:17px;font-weight:800;}
+.price-row.total .price-row-val{font-size:17px;font-weight:800;}
+.strikethrough{text-decoration:line-through;color:#aaa;font-weight:400;margin-right:4px;}
+.savings-banner{background:#1a1a00;color:#f59e0b;padding:12px 16px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;}
+
+.confirm-cta{padding:16px;background:#fff;}
+.cta-btn{width:100%;padding:16px;border-radius:14px;border:none;font-size:16px;font-weight:800;cursor:pointer;letter-spacing:-0.3px;}
+.cta-btn.green{background:#06C167;color:#fff;}
+.cta-btn.black{background:#000;color:#fff;}
+.cta-btn:disabled{background:#ccc;cursor:not-allowed;}
+
+/* Confirmation screen */
+.confirm-header{background:#fff;padding:28px 20px 20px;text-align:center;border-bottom:6px solid #f6f6f6;}
+.confirm-check{width:64px;height:64px;border-radius:50%;background:#06C167;display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;margin:0 auto 14px;}
+.confirm-title{font-size:24px;font-weight:900;letter-spacing:-0.6px;margin-bottom:4px;}
+.confirm-sub{font-size:14px;color:#666;}
+
+.order-summary-card{background:#fff;margin:8px 0;padding:16px;}
+.order-sum-row{display:flex;justify-content:space-between;padding:6px 0;font-size:14px;border-bottom:1px solid #f5f5f5;}
+.order-sum-row:last-child{border-bottom:none;}
+.order-sum-label{color:#666;}
+.order-sum-val{font-weight:600;}
+
+.recommit-card{background:#fff;margin:0 0 8px;padding:16px;border-left:4px solid #f59e0b;}
+.recommit-label{font-size:11px;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
+.recommit-title{font-size:16px;font-weight:800;margin-bottom:4px;letter-spacing:-0.3px;}
+.recommit-sub{font-size:13px;color:#666;margin-bottom:14px;line-height:1.4;}
+.recommit-actions{display:flex;flex-direction:column;gap:8px;}
+.recommit-primary{width:100%;padding:13px;border-radius:12px;background:#06C167;color:#fff;border:none;font-size:15px;font-weight:700;cursor:pointer;}
+.recommit-secondary{font-size:14px;color:#000;font-weight:600;text-align:center;cursor:pointer;padding:6px;background:none;border:none;text-decoration:underline;}
+.recommit-skip{font-size:13px;color:#999;text-align:center;cursor:pointer;padding:4px;background:none;border:none;}
+
+/* Partner switch screen */
+.ps-intercept{padding:24px 16px;}
+.psi-eyebrow{font-size:12px;color:#888;font-weight:600;margin-bottom:6px;}
+.psi-title{font-size:26px;font-weight:900;letter-spacing:-0.8px;margin-bottom:4px;line-height:1.1;}
+.psi-sub{font-size:15px;color:#444;margin-bottom:20px;line-height:1.4;}
+.psi-partner-card{background:#fff;border-radius:20px;padding:18px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,0.08);}
+.psi-incentive{display:inline-flex;align-items:center;gap:5px;background:#f0faf5;color:#06C167;border:1.5px solid #06C167;font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;margin-bottom:14px;}
+.psi-try-btn{width:100%;padding:15px;border-radius:14px;background:#06C167;color:#fff;border:none;font-size:16px;font-weight:800;cursor:pointer;margin-bottom:12px;}
+.psi-later-btn{width:100%;padding:12px;border-radius:14px;background:none;border:1.5px solid #e0e0e0;font-size:15px;font-weight:600;cursor:pointer;color:#333;}
+
+/* Orders screen */
+.orders-content{padding:16px;}
+.orders-title{font-size:24px;font-weight:900;letter-spacing:-0.6px;margin-bottom:16px;}
+.active-order-card{background:#fff;border-radius:20px;padding:18px;margin-bottom:12px;box-shadow:0 2px 12px rgba(0,0,0,0.08);}
+.aoc-header{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.aoc-logo{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;}
+.aoc-title{font-size:16px;font-weight:800;}
+.aoc-status{font-size:12px;color:#06C167;font-weight:600;}
+.aoc-details{font-size:13px;color:#666;line-height:1.6;margin-bottom:14px;}
+.aoc-actions{display:flex;gap:8px;}
+.aoc-btn{flex:1;padding:10px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;text-align:center;}
+.aoc-btn.pause{background:#f6f6f6;color:#000;border:none;}
+.aoc-btn.cancel{background:#fff;color:#e74c3c;border:1.5px solid #e74c3c;}
+.no-orders{text-align:center;padding:40px 20px;color:#888;}
+.no-orders-icon{font-size:48px;margin-bottom:12px;}
+.no-orders-text{font-size:16px;font-weight:600;}
+
+/* Cancel/pause screen */
+.cp-content{padding:16px;}
+.cp-title{font-size:22px;font-weight:900;letter-spacing:-0.6px;margin-bottom:4px;}
+.cp-sub{font-size:14px;color:#666;margin-bottom:20px;}
+.cp-option-card{background:#fff;border-radius:20px;padding:18px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);cursor:pointer;border:2px solid transparent;transition:all 0.2s;}
+.cp-option-card.selected{border-color:#06C167;}
+.cp-option-card.cancel-mode{border-color:transparent;}
+.cp-option-card.cancel-mode.selected{border-color:#e74c3c;}
+.cp-option-icon{font-size:24px;margin-bottom:8px;}
+.cp-option-title{font-size:16px;font-weight:800;margin-bottom:4px;}
+.cp-option-desc{font-size:13px;color:#666;line-height:1.4;}
+.cp-option-fee{font-size:14px;font-weight:700;margin-top:8px;}
+.pause-days{padding:12px 0 4px;}
+.pause-days-label{font-size:13px;font-weight:600;margin-bottom:8px;}
+.cancel-warning{background:#fef2f2;border-radius:12px;padding:14px;margin-top:12px;border-left:3px solid #e74c3c;}
+.cancel-warning-text{font-size:13px;color:#991b1b;line-height:1.5;}
+.danger-btn{width:100%;padding:15px;border-radius:14px;background:#e74c3c;color:#fff;border:none;font-size:15px;font-weight:700;cursor:pointer;margin-top:12px;}
+.danger-btn.confirm-step{background:#b91c1c;}
+
+/* Misc */
+.section-divider{height:8px;background:#f6f6f6;}
+.info-text{font-size:12px;color:#888;line-height:1.4;}
+.green-text{color:#06C167;}
+.bold{font-weight:700;}
+.divider{height:1px;background:#f0f0f0;margin:0 16px;}
+
+/* Account screen placeholder */
+.account-content{padding:20px;text-align:center;padding-top:60px;}
+.account-avatar{width:80px;height:80px;border-radius:50%;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;margin:0 auto 12px;}
+
+/* Qty badge + controls on meal card */
+.qty-overlay{position:absolute;top:6px;left:6px;background:#000;color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:10px;z-index:2;}
+.meal-qty-controls{display:flex;align-items:center;gap:4px;}
+.meal-qty-btn{width:26px;height:26px;border-radius:50%;border:1.5px solid #ccc;background:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;line-height:1;}
+.meal-qty-btn:disabled{opacity:0.35;cursor:default;}
+.meal-qty-num{font-size:14px;font-weight:800;min-width:20px;text-align:center;}
+
+/* Cuisine dropdown */
+.cuisine-trigger{display:flex;align-items:center;gap:5px;padding:8px 12px;border-radius:22px;border:1.5px solid #e0e0e0;background:#fff;font-size:13px;font-weight:500;white-space:nowrap;cursor:pointer;flex-shrink:0;}
+.cuisine-trigger.has-active{border-color:#06C167;background:#f0faf5;color:#06C167;}
+.cuisine-panel{background:#fff;border-radius:16px;padding:14px;margin-top:10px;box-shadow:0 4px 20px rgba(0,0,0,0.1);border:1px solid #f0f0f0;}
+.cuisine-chips-wrap{display:flex;flex-wrap:wrap;gap:8px;}
+.cuisine-chip{padding:7px 14px;border-radius:20px;border:1.5px solid #e0e0e0;font-size:13px;font-weight:500;cursor:pointer;background:#fff;color:#000;}
+.cuisine-chip.on{border-color:#06C167;background:#06C167;color:#fff;}
+
+/* Swap mode banner */
+.swap-banner{background:#fff8e1;border-left:3px solid #f59e0b;padding:12px 16px;font-size:13px;color:#78350f;display:flex;align-items:flex-start;gap:8px;font-weight:500;line-height:1.4;}
+
+/* Repeat next week toggle */
+.repeat-row{display:flex;align-items:center;gap:12px;background:#f6f6f6;border-radius:14px;padding:14px 16px;margin-bottom:12px;cursor:pointer;}
+.repeat-toggle{width:44px;height:26px;border-radius:13px;background:#ccc;position:relative;flex-shrink:0;transition:background 0.2s;}
+.repeat-toggle.on{background:#06C167;}
+.repeat-toggle-knob{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3);}
+.repeat-toggle.on .repeat-toggle-knob{transform:translateX(18px);}
+
+/* Next week scheduled row on confirmation */
+.next-week-row{background:#e8f5e9;border-radius:12px;padding:12px 14px;margin-top:8px;font-size:13px;color:#1b5e20;display:flex;align-items:center;gap:8px;font-weight:500;}
+
+/* Sticky CTAs — fixed at viewport bottom, fully covers scrolling content */
+.sticky-cta{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:390px;background:#fff;padding:12px 16px 24px;box-shadow:0 -4px 20px rgba(0,0,0,0.10);border-top:1px solid #ececec;z-index:90;}
+
+/* Meal detail bottom sheet */
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:199;}
+.meal-detail-sheet{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:390px;background:#fff;border-radius:20px 20px 0 0;padding:0 20px 40px;z-index:200;max-height:70vh;overflow-y:auto;}
+.detail-handle{width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:14px auto 16px;}
+.detail-meal-emoji{font-size:48px;text-align:center;display:block;margin-bottom:12px;}
+.detail-section-label{font-size:11px;font-weight:700;color:'#888';text-transform:uppercase;letter-spacing:0.5px;margin:14px 0 5px;}
+.detail-text{font-size:14px;color:#444;line-height:1.5;}
+.allergen-tag{display:inline-block;background:#fff3e0;color:#e65100;font-size:11px;font-weight:600;padding:3px 9px;border-radius:10px;margin:2px 3px 2px 0;}
+
+/* Info button on meal card image */
+.meal-info-btn{position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.25);border:none;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;cursor:pointer;font-weight:700;z-index:3;line-height:1;}
+
+/* Remove-meal prompt banner */
+.remove-prompt-bar{background:#fff8e1;border-left:4px solid #f59e0b;padding:10px 16px;font-size:13px;color:#78350f;font-weight:600;display:flex;align-items:center;gap:6px;}
+.meal-card.remove-target{border-color:#f59e0b;}
+.meal-card.remove-target .meal-card-img::after{content:'tap to remove';position:absolute;inset:0;background:rgba(245,158,11,0.2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#78350f;}
+
+/* Delivery day chip — flat row, no wrapping */
+.earliest-note{font-size:10px;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:0.3px;margin-top:5px;display:flex;align-items:center;gap:3px;}
+
+/* Order detail screen */
+.order-detail-section{background:#fff;margin-bottom:8px;padding:16px;}
+.edit-delivery-btn{font-size:13px;color:#000;font-weight:600;cursor:pointer;border:none;background:none;text-decoration:underline;padding:0;display:inline-block;margin-top:8px;}
+.edit-delivery-disabled{font-size:11px;color:#bbb;font-weight:500;margin-top:6px;display:flex;align-items:center;gap:4px;}
+.split-delivery-group{padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid #f0f0f0;}
+.split-delivery-group:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.repeat-week-section{background:#f9f5ff;border-left:4px solid #7c3aed;margin-bottom:8px;padding:16px;}
+
+/* Address / contact rows (IMG_6367 pattern) */
+.contact-row{display:flex;align-items:center;padding:14px 0;border-bottom:1px solid #f5f5f5;cursor:pointer;}
+.contact-row:last-child{border-bottom:none;}
+.contact-icon{width:28px;color:'#555';font-size:16px;flex-shrink:0;}
+.contact-body{flex:1;}
+.contact-label{font-size:15px;font-weight:500;}
+.contact-sub{font-size:12px;color:#888;margin-top:1px;}
+.contact-chevron{font-size:16px;color:#ccc;margin-left:8px;}
+
+/* Delivery window selector */
+.window-chips{display:flex;gap:8px;margin-top:8px;}
+.window-chip{flex:1;padding:9px 6px;border-radius:10px;border:1.5px solid #e0e0e0;background:#fff;font-size:12px;font-weight:600;text-align:center;cursor:pointer;line-height:1.3;}
+.window-chip.selected{border-color:#06C167;background:#06C167;color:#fff;}
+.cold-food-warning{display:flex;align-items:flex-start;gap:8px;background:#fffbeb;border:1px solid #f59e0b;border-radius:12px;padding:11px 13px;margin-top:10px;font-size:12px;color:#78350f;line-height:1.4;}
+
+/* Payment method row */
+.payment-row{display:flex;align-items:center;padding:14px 0;border-top:1px solid #f5f5f5;}
+.payment-card-icon{width:38px;height:24px;border-radius:4px;background:#1a1f71;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;letter-spacing:0.3px;margin-right:10px;flex-shrink:0;}
+.payment-label{flex:1;font-size:15px;font-weight:500;}
+.payment-change{font-size:14px;color:#000;font-weight:700;cursor:pointer;text-decoration:none;}
+.card-option-row{display:flex;align-items:center;padding:11px 0;border-bottom:1px solid #f5f5f5;cursor:pointer;}
+.card-option-row:last-child{border-bottom:none;}
+.card-option-selected{color:'#06C167';font-size:14px;margin-left:8px;}
+
+/* Pre-confirm modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:flex;align-items:flex-end;}
+.modal-sheet{background:#fff;border-radius:20px 20px 0 0;padding:24px 20px 36px;width:100%;max-width:390px;margin:0 auto;}
+.modal-handle{width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 20px;}
+.modal-title{font-size:20px;font-weight:900;letter-spacing:-0.5px;margin-bottom:10px;}
+.modal-body{font-size:14px;color:#555;line-height:1.5;margin-bottom:20px;}
+.modal-primary{width:100%;padding:15px;border-radius:14px;background:#06C167;color:#fff;border:none;font-size:16px;font-weight:800;cursor:pointer;margin-bottom:10px;}
+.modal-secondary{width:100%;padding:13px;border-radius:14px;background:#f6f6f6;color:#333;border:none;font-size:15px;font-weight:600;cursor:pointer;}
+
+/* Week 2 cancelled badge */
+.week2-cancelled-section{background:#fef2f2;border-left:4px solid #e74c3c;margin-bottom:8px;padding:16px;}
+
+/* Cancel with repeat order — per-week checkboxes */
+.cancel-week-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f5f5f5;cursor:pointer;}
+.cancel-week-row:last-child{border-bottom:none;}
+.cancel-week-box{width:22px;height:22px;border-radius:6px;border:2px solid #d1d5db;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s;}
+.cancel-week-box.checked{background:#e74c3c;border-color:#e74c3c;}
+.cancel-week-info{flex:1;}
+.cancel-week-label{font-size:14px;font-weight:600;margin-bottom:2px;}
+.cancel-week-date{font-size:12px;color:#666;}
+.cancel-week-price{font-size:14px;font-weight:700;color:#e74c3c;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useReducer, useCallback, useRef, useEffect, useMemo } = React;
+
+// ─── DATA ───────────────────────────────────────────────────────────────────
+
+const PARTNERS = {
+  cookunity: {
+    id: 'cookunity',
+    name: 'CookUnity',
+    shortName: 'CU',
+    color: '#1a1a1a',
+    tagline: 'Chef-crafted, ready-to-eat meals',
+    description: 'Fresh meals from 50+ top chefs, never frozen. Ready in 2 minutes.',
+    priceRange: '$11.99 – $15.99 / meal',
+    macroHighlight: 'Diverse cuisine · 15–45g protein per meal',
+    cuisines: ['All', 'African', 'Italian', 'Indian', 'Mexican', 'Mediterranean', 'Korean', 'Thai', 'Southern', 'Seafood'],
+  },
+  factor: {
+    id: 'factor',
+    name: 'Factor',
+    shortName: 'F_',
+    color: '#111',
+    tagline: 'Dietitian-approved, chef-crafted meals',
+    description: 'High-protein, ready in 2 minutes. Real ingredients you trust.',
+    priceRange: '$11.99 – $15.99 / meal',
+    macroHighlight: 'High protein · 36–48g per meal',
+    cuisines: ['All', 'American', 'Mexican', 'Italian', 'Breakfast', 'Seafood', 'Asian'],
+  },
+};
+
+const MEALS = {
+  cookunity: [
+    { id:'cu1',  name:'Yassa Grilled Chicken',      source:'Chef Fatou',    cal:480, protein:38, price:13.99, cuisine:'African',       emoji:'🍗', desc:'West African chicken slow-marinated in Yassa citrus-mustard sauce, served over jasmine rice with caramelized sweet plantains.',       ingredients:'Chicken, Onion, Lemon juice, Dijon mustard, Sweet plantains, Jasmine rice, Olive oil, Garlic', allergens:'Mustard. Prepared in a facility with tree nuts.' },
+    { id:'cu2',  name:'Salmon Lemon Butter',         source:'Chef Marco',    cal:520, protein:42, price:15.49, cuisine:'Seafood',        emoji:'🐟', desc:'Pan-seared Atlantic salmon in a bright lemon-herb butter sauce with roasted fingerling potatoes and sautéed broccolini.',            ingredients:'Atlantic salmon, Lemon, Butter, Fingerling potatoes, Broccolini, Capers, Dill, Garlic',       allergens:'Fish, Dairy.' },
+    { id:'cu3',  name:'Beef Bolognese Pasta',        source:'Chef Lucia',    cal:680, protein:35, price:12.99, cuisine:'Italian',        emoji:'🍝', desc:'Slow-simmered beef Bolognese with San Marzano tomatoes, pappardelle pasta, and a dusting of aged Parmigiano-Reggiano.',              ingredients:'Ground beef, Pappardelle, San Marzano tomatoes, Onion, Celery, Carrot, Red wine, Parmigiano', allergens:'Gluten, Dairy, Egg (pasta).' },
+    { id:'cu4',  name:'Chicken Tikka Masala',        source:'Chef Arjun',    cal:490, protein:36, price:13.49, cuisine:'Indian',         emoji:'🍛', desc:'Tender tandoori-marinated chicken in a rich tomato-cream masala sauce, served with fragrant basmati rice.',                          ingredients:'Chicken breast, Basmati rice, Tomatoes, Heavy cream, Yogurt, Garam masala, Ginger, Garlic',   allergens:'Dairy.' },
+    { id:'cu5',  name:'Shrimp Tacos',                source:'Chef Rosa',     cal:410, protein:28, price:14.99, cuisine:'Mexican',        emoji:'🌮', desc:'Chipotle-spiced shrimp on warm corn tortillas with mango-jalapeño salsa, pickled red onion, and cilantro crema.',                   ingredients:'Shrimp, Corn tortillas, Mango, Jalapeño, Red onion, Cilantro, Lime, Chipotle, Sour cream',    allergens:'Shellfish, Dairy.' },
+    { id:'cu6',  name:'Mediterranean Lamb Chops',    source:'Chef Nikos',    cal:560, protein:45, price:15.99, cuisine:'Mediterranean',   emoji:'🥩', desc:'Herb-crusted lamb chops with a pomegranate reduction, roasted cauliflower tabbouleh, and tahini drizzle.',                          ingredients:'Lamb chops, Pomegranate, Cauliflower, Parsley, Tahini, Mint, Lemon, Chickpeas, Olive oil',    allergens:'Sesame (tahini).' },
+    { id:'cu7',  name:'Korean BBQ Chicken Bowl',     source:'Chef Ji-yeon',  cal:530, protein:40, price:13.99, cuisine:'Korean',         emoji:'🥢', desc:'Gochujang-glazed grilled chicken over steamed rice with pickled daikon, sesame cucumber salad, and a soft-boiled egg.',              ingredients:'Chicken thigh, Jasmine rice, Gochujang, Daikon, Cucumber, Sesame oil, Egg, Scallion, Nori',   allergens:'Egg, Sesame, Soy.' },
+    { id:'cu8',  name:'Thai Green Curry (V)',         source:'Chef Siriporn', cal:380, protein:18, price:11.99, cuisine:'Thai',           emoji:'🍲', desc:'Fragrant coconut green curry with seasonal vegetables, tofu, fresh Thai basil, and jasmine rice. Vegan.',                            ingredients:'Tofu, Coconut milk, Green curry paste, Zucchini, Bell pepper, Basil, Lime leaf, Jasmine rice', allergens:'Soy. Contains chili.' },
+    { id:'cu9',  name:'Blackened Catfish & Grits',   source:'Chef Darnell',  cal:510, protein:38, price:14.49, cuisine:'Southern',       emoji:'🐠', desc:'Cajun-blackened catfish over creamy stone-ground cheddar grits with sautéed collard greens and pickled okra.',                       ingredients:'Catfish, Stone-ground grits, Cheddar, Collard greens, Okra, Cajun spice, Butter, Garlic',     allergens:'Fish, Dairy, Gluten (grits).' },
+    { id:'cu10', name:'Mushroom Risotto (V)',         source:'Chef Elena',    cal:450, protein:15, price:12.49, cuisine:'Italian',        emoji:'🍄', desc:'Arborio risotto with a blend of wild and cultivated mushrooms, Pecorino, white wine, fresh thyme, and truffle oil.',                  ingredients:'Arborio rice, Porcini, Cremini, Shallots, White wine, Pecorino, Thyme, Truffle oil, Butter',  allergens:'Dairy, Gluten, Sulphites.' },
+  ],
+  factor: [
+    { id:'f1',  name:'Southwest Beef Scramble',         source:'Calorie Smart', cal:580, protein:45, price:12.99, cuisine:'American',  emoji:'🥩', desc:'Seasoned ground beef with bell pepper, onion, black beans, cheddar, and a zesty salsa verde. Low-carb and filling.',                  ingredients:'Ground beef, Bell pepper, Onion, Black beans, Cheddar, Salsa verde, Cumin, Chili powder',     allergens:'Dairy.' },
+    { id:'f2',  name:'Chipotle Chicken & Cauliflower',  source:'Protein Plus',  cal:420, protein:48, price:13.99, cuisine:'Mexican',   emoji:'🍗', desc:'Smoked chipotle chicken thighs over roasted cauliflower rice with avocado, cilantro, and a lime crema. Keto-friendly.',              ingredients:'Chicken thigh, Cauliflower, Avocado, Chipotle, Lime, Cilantro, Sour cream, Garlic, Cumin',    allergens:'Dairy.' },
+    { id:'f3',  name:'Garlic Butter Steak Bites',       source:'Protein Plus',  cal:490, protein:42, price:15.49, cuisine:'American',  emoji:'🥩', desc:'Sirloin steak bites pan-seared in garlic compound butter with roasted asparagus and a Dijon pan sauce.',                              ingredients:'Sirloin, Butter, Garlic, Asparagus, Dijon mustard, Parsley, Thyme, Shallot',                 allergens:'Dairy, Mustard.' },
+    { id:'f4',  name:'Smoked Salmon Frittata',          source:'Calorie Smart', cal:380, protein:36, price:14.99, cuisine:'Breakfast', emoji:'🐟', desc:'Oven-baked egg frittata with wild smoked salmon, cream cheese, capers, dill, and roasted cherry tomatoes.',                           ingredients:'Eggs, Smoked salmon, Cream cheese, Capers, Dill, Cherry tomatoes, Shallot, Chives',          allergens:'Egg, Fish, Dairy.' },
+    { id:'f5',  name:'Pesto Chicken Pasta',             source:"Chef's Choice", cal:560, protein:38, price:12.49, cuisine:'Italian',   emoji:'🍝', desc:'Grilled chicken with house basil pesto, cherry tomatoes, arugula, and rigatoni, finished with Parmigiano and a lemon zest.',           ingredients:'Chicken breast, Rigatoni, Basil pesto, Cherry tomatoes, Arugula, Parmigiano, Lemon, Pine nuts',allergens:'Gluten, Dairy, Tree nuts (pine nuts).' },
+    { id:'f6',  name:'Turkey Meatballs Marinara',       source:'Calorie Smart', cal:450, protein:40, price:11.99, cuisine:'Italian',   emoji:'🍝', desc:'Lean turkey meatballs in a slow-simmered San Marzano marinara, served with a side of zucchini ribbons.',                             ingredients:'Ground turkey, San Marzano tomatoes, Zucchini, Parsley, Egg, Garlic, Breadcrumbs, Parmesan', allergens:'Egg, Gluten, Dairy.' },
+    { id:'f7',  name:'Salmon with Asparagus',           source:'Protein Plus',  cal:480, protein:44, price:15.99, cuisine:'Seafood',   emoji:'🐟', desc:'Herb-crusted Atlantic salmon with lemon-caper butter, grilled asparagus, and a side of roasted sweet potato.',                       ingredients:'Atlantic salmon, Asparagus, Sweet potato, Lemon, Capers, Butter, Dill, Garlic, Olive oil',   allergens:'Fish, Dairy.' },
+    { id:'f8',  name:'Chicken Bacon Ranch Bowl',        source:'Protein Plus',  cal:520, protein:42, price:13.49, cuisine:'American',  emoji:'🥗', desc:'Grilled chicken with crispy turkey bacon, romaine, cherry tomatoes, cucumber, cheddar, and house buttermilk ranch.',                  ingredients:'Chicken breast, Turkey bacon, Romaine, Cherry tomatoes, Cucumber, Cheddar, Ranch dressing',   allergens:'Dairy, Egg (ranch).' },
+    { id:'f9',  name:'Lemon Herb Tilapia',              source:'Calorie Smart', cal:350, protein:38, price:12.99, cuisine:'Seafood',   emoji:'🐟', desc:'Light pan-seared tilapia with lemon-herb crust, steamed broccoli, and roasted garlic cauliflower mash.',                             ingredients:'Tilapia, Broccoli, Cauliflower, Lemon, Herbs, Garlic, Olive oil, Butter',                    allergens:'Fish, Dairy.' },
+    { id:'f10', name:'Beef & Broccoli Stir Fry',        source:"Chef's Choice", cal:460, protein:36, price:13.99, cuisine:'Asian',     emoji:'🥦', desc:'Wok-tossed flank steak and broccoli in a savory ginger-soy glaze, served over cauliflower rice. Gluten-free.',                       ingredients:'Flank steak, Broccoli, Cauliflower rice, Soy sauce (GF tamari), Ginger, Garlic, Sesame oil', allergens:'Soy, Sesame.' },
+  ],
+};
+
+// Delivery days: minimum 2 days from today so partner has prep time
+const getAvailableDays = () => {
+  const today = new Date();
+  const result = [];
+  for (let i = 2; i <= 8; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    result.push({
+      short: d.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'}),
+      full:  d.toLocaleDateString('en-US', {weekday:'long',  month:'long',  day:'numeric'}),
+      date:  d,
+      earliest: i === 2,
+    });
+  }
+  return result;
+};
+
+// ─── NAV REDUCER ────────────────────────────────────────────────────────────
+
+const navReducer = (state, action) => {
+  switch (action.type) {
+    case 'GO': return { ...state, screen: action.screen, direction: action.direction || 'forward', extra: action.extra || null };
+    default: return state;
+  }
+};
+
+// ─── SMALL COMPONENTS ───────────────────────────────────────────────────────
+
+const UberOneBadge = () => (
+  <span className="uber-one-badge">⚡ All-in · Uber One</span>
+);
+
+const StatusBar = () => (
+  <div className="status-bar">
+    <span>8:55</span>
+    <div className="status-icons">
+      <span style={{fontSize:13}}>▲▲▲</span>
+      <span>WiFi</span>
+      <span style={{background:'#06C167',color:'#fff',borderRadius:4,padding:'1px 5px',fontSize:12,fontWeight:700}}>71%</span>
+    </div>
+  </div>
+);
+
+const BottomNav = ({ activeTab, onNav }) => {
+  const items = [
+    { id: 'home', icon: '🏠', label: 'Home' },
+    { id: 'mealprep', icon: '🥗', label: 'Meal Prep' },
+    { id: 'orders', icon: '📋', label: 'Orders' },
+    { id: 'account', icon: '👤', label: 'Account' },
+  ];
+  return (
+    <div className="bottom-nav">
+      {items.map(item => (
+        <button key={item.id} className="nav-item" onClick={() => onNav(item.id)}>
+          <span className={`nav-icon${activeTab === item.id ? ' active' : ''}`}>{item.icon}</span>
+          <span className={`nav-label${activeTab === item.id ? ' active' : ''}`}>{item.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+};
+
+const BackHeader = ({ title, onBack, right }) => (
+  <div className="screen-header">
+    <button className="back-btn" onClick={onBack}>←</button>
+    <span className="header-title">{title}</span>
+    <div className="header-right">{right}</div>
+  </div>
+);
+
+// ─── SCREEN 1: HOME ─────────────────────────────────────────────────────────
+
+const HomeScreen = ({ onNav, onGoToMealPrep, onGoToPartnerBrowse, activeOrders }) => {
+  const [activeChip, setActiveChip] = useState('All');
+
+  const featuredCards = [
+    { name: 'Ivan Ramen', emoji: '🍜', fee: '$0 Delivery Fee', time: '22 min', rating: '4.7 (900+)', badge: '30% off $65+' },
+    { name: 'Koi', emoji: '🍱', fee: '$0 Delivery Fee', time: '28 min', rating: 'Best Overall', badge: null },
+  ];
+  const legendCards = [
+    { name: 'Carbone', emoji: '🍝', fee: '$0 Delivery Fee', time: '35 min', rating: '4.9 (2k+)', badge: null },
+    { name: 'Nobu', emoji: '🥡', fee: '$0 Delivery Fee', time: '40 min', rating: '4.8 (1.2k)', badge: null },
+  ];
+
+  return (
+    <div className="screen" style={{background:'#f6f6f6'}}>
+      <StatusBar />
+      <div style={{background:'#fff'}}>
+        <div className="location-header">
+          <div className="location-address">
+            <span>45 Tudor City Pl</span>
+            <span className="location-arrow">▾</span>
+          </div>
+          <button className="bell-btn">🔔</button>
+        </div>
+        <div className="chips-row">
+          {[{label:'All',emoji:'🌐'},{label:'Rides',emoji:'🚗'},{label:'Grocery',emoji:'🛒'},{label:'Convenience',emoji:'⚡'}].map(c => (
+            <button key={c.label} className={`chip${activeChip===c.label?' active':''}`} onClick={() => setActiveChip(c.label)}>
+              <span className="chip-emoji">{c.emoji}</span>{c.label}
+            </button>
+          ))}
+        </div>
+        <div className="icon-grid">
+          {[{e:'🍽',l:'Dine Out'},{e:'🔍',l:'Explore'},{e:'🧃',l:'Smoothies'},{e:'🍔',l:'Fast Food'},{e:'☕',l:'Coffee'}].map(i => (
+            <div key={i.l} className="icon-item">
+              <div className="icon-box">{i.e}</div>
+              <span className="icon-label">{i.l}</span>
+            </div>
+          ))}
+        </div>
+        <div className="filter-pills">
+          {['⚡ Uber One','🛍 Pickup','🏷 Offers','⏱ Under 30 min'].map(f => (
+            <button key={f} className="filter-pill">{f}</button>
+          ))}
+        </div>
+      </div>
+
+      <div className="shelf">
+        <div className="shelf-header">
+          <span className="shelf-title">Featured on Uber Eats</span>
+          <span className="shelf-see-all">See all →</span>
+        </div>
+        <div className="shelf-scroll">
+          {featuredCards.map(c => (
+            <div key={c.name} className="resto-card">
+              <div className="resto-card-img">
+                {c.badge && <span className="resto-badge resto-badge-red">{c.badge}</span>}
+                <span style={{fontSize:36}}>{c.emoji}</span>
+              </div>
+              <div className="resto-info">
+                <div className="resto-name">{c.name}</div>
+                <div className="resto-meta">
+                  <span>⚡</span><span style={{color:'#06C167',fontWeight:600}}>{c.fee}</span>
+                </div>
+                <div className="resto-meta">{c.time} · <span className="resto-rating">{c.rating}</span></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="shelf">
+        <div className="shelf-header">
+          <span className="shelf-title">Local Legends</span>
+          <span className="shelf-see-all">See all →</span>
+        </div>
+        <div className="shelf-scroll">
+          {legendCards.map(c => (
+            <div key={c.name} className="resto-card">
+              <div className="resto-card-img">
+                <span style={{fontSize:36}}>{c.emoji}</span>
+              </div>
+              <div className="resto-info">
+                <div className="resto-name">{c.name}</div>
+                <div className="resto-meta"><span>⚡</span><span style={{color:'#06C167',fontWeight:600}}>{c.fee}</span></div>
+                <div className="resto-meta">{c.time} · <span className="resto-rating">{c.rating}</span></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Meal Prep Shelf — native to page */}
+      <div className="shelf" style={{borderTop:'3px solid #f0f0f0'}}>
+        <div className="shelf-header">
+          <div>
+            <div className="shelf-title">Meal Prep</div>
+            <div style={{fontSize:12,color:'#888',marginTop:2}}>Weekly chef-crafted meals · All-in pricing</div>
+          </div>
+          <span className="shelf-see-all" onClick={onGoToMealPrep}>See all →</span>
+        </div>
+        <div className="shelf-scroll">
+          {Object.values(PARTNERS).map(p => (
+            <div key={p.id} className="mp-partner-card" onClick={() => onGoToPartnerBrowse(p.id)}>
+              <div className="mp-partner-logo">{p.shortName}</div>
+              <div className="mp-partner-name">{p.name}</div>
+              <div className="mp-partner-desc">{p.tagline}</div>
+              <div className="mp-price">{p.priceRange}</div>
+              <UberOneBadge />
+              {activeOrders && activeOrders[p.id] && (
+                <div style={{fontSize:11,color:'#06C167',fontWeight:600,marginTop:6}}>● Active order</div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <BottomNav activeTab="home" onNav={onNav} />
+    </div>
+  );
+};
+
+// ─── SCREEN 2: PARTNER SELECT ────────────────────────────────────────────────
+
+const PartnerSelectScreen = ({ onBack, onSelectPartner, onNav, activeOrders }) => (
+  <div className="screen white-bg">
+    <StatusBar />
+    <BackHeader title="Meal Prep" onBack={onBack} />
+    <div className="partner-select-content">
+      <p className="partner-select-sub" style={{marginTop:8}}>
+        Weekly chef-crafted meals, delivered fresh. One active order per partner.
+      </p>
+      {Object.values(PARTNERS).map(p => {
+        const hasOrder = activeOrders && activeOrders[p.id];
+        return (
+          <div key={p.id} className="ps-card" onClick={() => onSelectPartner(p.id)}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+              <div className="ps-logo" style={{background:p.color}}>{p.shortName}</div>
+              {hasOrder && <span style={{fontSize:11,fontWeight:700,color:'#06C167',background:'#f0faf5',padding:'3px 8px',borderRadius:20}}>● Active order</span>}
+            </div>
+            <div className="ps-name">{p.name}</div>
+            <div className="ps-tagline">{p.description}</div>
+            <div className="ps-price">{p.priceRange}</div>
+            <div className="ps-macro">💪 {p.macroHighlight}</div>
+            <UberOneBadge />
+            {hasOrder && (
+              <div className="ps-note" style={{color:'#f59e0b',borderTop:'1px solid #f0f0f0',marginTop:10,paddingTop:10}}>
+                You already have an active {p.name} order. You can only have one active order per partner at a time.
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+    <BottomNav activeTab="mealprep" onNav={onNav} />
+  </div>
+);
+
+// ─── SCREEN 3: MEAL BROWSE ───────────────────────────────────────────────────
+
+const MealBrowseScreen = ({ partner, onBack, onContinue, onNav, activeOrderForPartner, preloaded, swapMode, swapFromId, onSwapComplete, initCount, addMoreMessage, onCartSync }) => {
+  const meals = MEALS[partner];
+  const partnerData = PARTNERS[partner];
+  const [mealCount, setMealCount] = useState(initCount || 7);
+  const [selectedQty, setSelectedQty] = useState(() =>
+    (preloaded || []).reduce((acc, m) => ({ ...acc, [m.id]: (acc[m.id] || 0) + 1 }), {})
+  );
+  const [minProtein, setMinProtein] = useState(0);
+  const [maxCal, setMaxCal] = useState(999);
+  const [activeCuisines, setActiveCuisines] = useState([]);
+  const [cuisineOpen, setCuisineOpen] = useState(false);
+  const [mealDetails, setMealDetails] = useState(null);   // meal object for bottom sheet
+  const [removePrompt, setRemovePrompt] = useState(null); // { needed: N }
+  const showConflict = !swapMode && activeOrderForPartner;
+
+  const totalSelected = Object.values(selectedQty).reduce((s, n) => s + n, 0);
+  const totalPrice = Object.entries(selectedQty).reduce((s, [id, qty]) => {
+    const meal = meals.find(m => m.id === id);
+    return s + (meal ? meal.price * qty : 0);
+  }, 0);
+
+  const filtered = meals.filter(m =>
+    m.protein >= minProtein &&
+    (maxCal === 999 || m.cal <= maxCal) &&
+    (activeCuisines.length === 0 || activeCuisines.includes(m.cuisine))
+  );
+
+  const addMeal = (id) => {
+    if (totalSelected >= mealCount) return;
+    setSelectedQty(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
+  };
+
+  const removeMeal = (id) => {
+    setSelectedQty(prev => {
+      const next = { ...prev };
+      if ((next[id] || 0) <= 1) delete next[id];
+      else next[id]--;
+      return next;
+    });
+  };
+
+  const handleCardTap = (meal) => {
+    if (swapMode) { onSwapComplete(meal); return; }
+    if (removePrompt) {
+      // Remove-prompt mode: tap a selected meal to deselect it entirely
+      if (selectedQty[meal.id]) {
+        setSelectedQty(prev => { const next={...prev}; delete next[meal.id]; return next; });
+        setRemovePrompt(prev => {
+          const n = prev.needed - 1;
+          return n > 0 ? { needed: n } : null;
+        });
+      }
+      return;
+    }
+    addMeal(meal.id);
+  };
+
+  const toggleCuisine = (c) =>
+    setActiveCuisines(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]);
+
+  const ready = totalSelected === mealCount && !showConflict && !removePrompt;
+
+  const expandedMeals = () =>
+    Object.entries(selectedQty).flatMap(([id, qty]) => {
+      const meal = meals.find(m => m.id === id);
+      return meal ? Array(qty).fill(meal) : [];
+    });
+
+  // Smart downgrade: phase 1 reduce qty≥2 to 1, phase 2 prompt for full removal
+  const handleSetCount = (n) => {
+    if (n >= totalSelected) { setMealCount(n); return; }
+    let excess = totalSelected - n;
+    const next = { ...selectedQty };
+    // Phase 1: trim qty≥2 items down to 1
+    for (const id of Object.keys(next)) {
+      if (excess <= 0) break;
+      if (next[id] >= 2) {
+        const cut = Math.min(excess, next[id] - 1);
+        next[id] -= cut; excess -= cut;
+      }
+    }
+    setSelectedQty(next);
+    setMealCount(n);
+    if (excess > 0) setRemovePrompt({ needed: excess });
+  };
+
+  return (
+    <div className="screen" style={{background:'#f6f6f6', paddingBottom:130}}>
+      <StatusBar />
+      <BackHeader
+        title={swapMode ? 'Select replacement' : partnerData.name}
+        onBack={() => {
+          if (!swapMode && onCartSync) onCartSync(expandedMeals());
+          onBack();
+        }}
+        right={<span style={{fontSize:18}}>🛒</span>}
+      />
+
+      {addMoreMessage && (
+        <div className="swap-banner" style={
+          addMoreMessage.includes('reduced')
+            ? {background:'#fff8e1',borderLeftColor:'#f59e0b',color:'#78350f'}
+            : {background:'#f0faf5',borderLeftColor:'#06C167',color:'#065f46'}
+        }>
+          <span>{addMoreMessage.includes('reduced') ? '↓' : '➕'}</span>
+          <div>{addMoreMessage}</div>
+        </div>
+      )}
+
+      {swapMode && (
+        <div className="swap-banner">
+          <span>🔄</span>
+          <div>Tap any meal to replace <strong>{meals.find(m=>m.id===swapFromId)?.name || 'selected meal'}</strong>. All other selections stay.</div>
+        </div>
+      )}
+
+      {removePrompt && (
+        <div className="remove-prompt-bar">
+          <span>✕</span>
+          <span>Tap {removePrompt.needed} meal{removePrompt.needed!==1?'s':''} to remove from your selection</span>
+        </div>
+      )}
+
+      {showConflict && !swapMode && (
+        <div className="conflict-banner">
+          You already have an active <strong>{partnerData.name}</strong> order. You can only have one active order per partner at a time.
+        </div>
+      )}
+
+      {!swapMode && (
+        <div className="count-selector">
+          {[5,7,10].map(n => (
+            <button key={n} className={`count-pill${mealCount===n?' active':''}`} onClick={() => handleSetCount(n)}>
+              {n} meals
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className="macro-filter-bar">
+        <div style={{fontSize:11,fontWeight:700,color:'#888',textTransform:'uppercase',letterSpacing:0.5,marginBottom:8}}>Filter by nutrition</div>
+        <div className="macro-filter-row">
+          <div className="macro-filter-chip" style={{gap:8}}>
+            <span style={{fontSize:12,fontWeight:600}}>Min protein</span>
+            <button className="stepper-btn" onClick={() => setMinProtein(p => Math.max(0, p-5))}>−</button>
+            <span className="stepper-val">{minProtein}g</span>
+            <button className="stepper-btn" onClick={() => setMinProtein(p => Math.min(50, p+5))}>+</button>
+          </div>
+          <div className="macro-filter-chip" style={{gap:8}}>
+            <span style={{fontSize:12,fontWeight:600}}>Max cal</span>
+            <button className="stepper-btn" onClick={() => setMaxCal(c => Math.max(200, c-50))}>−</button>
+            <span className="stepper-val">{maxCal===999?'Any':maxCal}</span>
+            <button className="stepper-btn" onClick={() => setMaxCal(c => Math.min(999, c+50))}>+</button>
+          </div>
+          <button
+            className={`cuisine-trigger${activeCuisines.length>0?' has-active':''}`}
+            onClick={e => { e.stopPropagation(); setCuisineOpen(o => !o); }}>
+            {activeCuisines.length > 0 ? `Cuisine · ${activeCuisines.length}` : 'Cuisine'} {cuisineOpen ? '▲' : '▼'}
+          </button>
+        </div>
+        {cuisineOpen && (
+          <div className="cuisine-panel">
+            <div className="cuisine-chips-wrap">
+              {partnerData.cuisines.filter(c => c !== 'All').map(c => (
+                <button key={c} className={`cuisine-chip${activeCuisines.includes(c)?' on':''}`}
+                  onClick={() => toggleCuisine(c)}>{c}</button>
+              ))}
+            </div>
+            {activeCuisines.length > 0 && (
+              <button onClick={() => setActiveCuisines([])}
+                style={{marginTop:10,fontSize:12,color:'#888',background:'none',border:'none',cursor:'pointer',textDecoration:'underline'}}>
+                Clear all
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="meal-grid">
+        {filtered.map(meal => {
+          const qty = selectedQty[meal.id] || 0;
+          const isSelected = qty > 0;
+          const isSwapTarget = swapMode && meal.id === swapFromId;
+          const isRemoveTarget = removePrompt && isSelected;
+          return (
+            <div key={meal.id}
+              className={`meal-card${isSelected?' selected':''}${isRemoveTarget?' remove-target':''}`}
+              onClick={() => !isSwapTarget && handleCardTap(meal)}
+              style={isSwapTarget ? {opacity:0.35,pointerEvents:'none'} : {}}>
+              <div className="meal-card-img">
+                <span style={{fontSize:36}}>{meal.emoji}</span>
+                {qty > 0 && <div className="qty-overlay">×{qty}</div>}
+                <button className="meal-info-btn"
+                  onClick={e => { e.stopPropagation(); setMealDetails(meal); }}>ⓘ</button>
+              </div>
+              <div className="meal-card-body">
+                <div className="meal-name">{meal.name}</div>
+                <div className="meal-source">{meal.source}</div>
+                <div className="meal-macros">
+                  <span className="macro-badge protein">{meal.protein}g protein</span>
+                  <span className="macro-badge cal">{meal.cal} cal</span>
+                </div>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:4}}>
+                  <div className="meal-price">${meal.price.toFixed(2)}</div>
+                  {isSelected && !swapMode && !removePrompt && (
+                    <div className="meal-qty-controls" onClick={e => e.stopPropagation()}>
+                      <button className="meal-qty-btn" onClick={() => removeMeal(meal.id)}>−</button>
+                      <span className="meal-qty-num">{qty}</span>
+                      <button className="meal-qty-btn"
+                        disabled={totalSelected >= mealCount}
+                        onClick={() => addMeal(meal.id)}>+</button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        {filtered.length === 0 && (
+          <div style={{gridColumn:'1/-1',textAlign:'center',padding:'40px 20px',color:'#888'}}>
+            <div style={{fontSize:32,marginBottom:8}}>🔍</div>
+            <div style={{fontWeight:600}}>No meals match your filters</div>
+            <div style={{fontSize:13,marginTop:4}}>Try adjusting filters above</div>
+          </div>
+        )}
+      </div>
+
+      {!swapMode && (
+        <div className="running-total-bar">
+          <div>
+            <div className="rt-text">${totalPrice.toFixed(2)} total</div>
+            <div className="rt-count">
+              {totalSelected} of {mealCount} selected
+              {totalSelected < mealCount ? ` — pick ${mealCount - totalSelected} more` : ''}
+            </div>
+          </div>
+          <button className="continue-btn" disabled={!ready}
+            onClick={() => onContinue(expandedMeals(), mealCount)}>
+            {ready ? 'Continue →' : `${totalSelected}/${mealCount}`}
+          </button>
+        </div>
+      )}
+
+      <BottomNav activeTab="mealprep" onNav={onNav} />
+
+      {/* Meal detail bottom sheet */}
+      {mealDetails && (
+        <>
+          <div className="sheet-overlay" onClick={() => setMealDetails(null)} />
+          <div className="meal-detail-sheet">
+            <div className="detail-handle"/>
+            <span className="detail-meal-emoji">{mealDetails.emoji}</span>
+            <div style={{fontWeight:800,fontSize:18,marginBottom:4,letterSpacing:'-0.4px'}}>{mealDetails.name}</div>
+            <div style={{fontSize:13,color:'#888',marginBottom:12}}>{mealDetails.source}</div>
+            <div style={{display:'flex',gap:6,marginBottom:14}}>
+              <span className="macro-badge protein">{mealDetails.protein}g protein</span>
+              <span className="macro-badge cal">{mealDetails.cal} cal</span>
+              <span style={{fontSize:13,fontWeight:700,color:'#06C167'}}>${mealDetails.price.toFixed(2)}</span>
+            </div>
+            <div style={{fontSize:11,fontWeight:700,color:'#aaa',textTransform:'uppercase',letterSpacing:0.5,marginBottom:5}}>Description</div>
+            <div className="detail-text" style={{marginBottom:14}}>{mealDetails.desc}</div>
+            <div style={{fontSize:11,fontWeight:700,color:'#aaa',textTransform:'uppercase',letterSpacing:0.5,marginBottom:5}}>Ingredients</div>
+            <div className="detail-text" style={{marginBottom:14,color:'#666'}}>{mealDetails.ingredients}</div>
+            <div style={{fontSize:11,fontWeight:700,color:'#aaa',textTransform:'uppercase',letterSpacing:0.5,marginBottom:7}}>Allergens</div>
+            <div>
+              {mealDetails.allergens.split('.').filter(s=>s.trim()).map((a,i)=>(
+                <span key={i} className="allergen-tag">{a.trim()}</span>
+              ))}
+            </div>
+            <button onClick={() => setMealDetails(null)}
+              style={{width:'100%',marginTop:20,padding:13,borderRadius:12,background:'#f6f6f6',border:'none',fontWeight:700,fontSize:15,cursor:'pointer'}}>
+              Close
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+// ─── SCREEN 4: CHECKOUT ──────────────────────────────────────────────────────
+
+const CheckoutScreen = ({ partner, selectedMeals, mealCount: initCount, onBack, onConfirm, onSwap, onNav, onAdjustCountUp, onAdjustCountDown }) => {
+  // Group flat array into unique meals with qty for display
+  const uniqueMeals = useMemo(() => {
+    const map = {};
+    selectedMeals.forEach(m => {
+      if (map[m.id]) map[m.id].qty++;
+      else map[m.id] = { ...m, qty: 1 };
+    });
+    return Object.values(map);
+  }, [selectedMeals]);
+
+  const [mealCount, setMealCount] = useState(initCount);
+  const [deliveryPref, setDeliveryPref] = useState('all-at-once');
+  const availDays = useMemo(() => getAvailableDays(), []);
+  const [selectedDayKey, setSelectedDayKey] = useState(availDays[0]?.short || '');
+  const [selectedDay2Key, setSelectedDay2Key] = useState(availDays[2]?.short || availDays[0]?.short || '');
+  const [policyOpen, setPolicyOpen] = useState(true);
+  const [repeatNextWeek, setRepeatNextWeek] = useState(false);
+  const [deliveryWindow, setDeliveryWindow] = useState('afternoon'); // 'morning'|'afternoon'|'evening'
+  const [showPaymentOptions, setShowPaymentOptions] = useState(false);
+  const [selectedCard, setSelectedCard] = useState('visa2416');
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  const selectedDay  = availDays.find(d => d.short === selectedDayKey)  || availDays[0];
+  const selectedDay2 = availDays.find(d => d.short === selectedDay2Key) || availDays[2] || availDays[0];
+
+  const avgPricePerMeal = selectedMeals.length ? selectedMeals.reduce((s,m)=>s+m.price,0) / selectedMeals.length : 0;
+  const total = avgPricePerMeal * mealCount;
+
+  const CARDS = [
+    { id: 'visa2416', type: 'VISA', last4: '2416', color: '#1a1f71' },
+    { id: 'mc9032', type: 'MC', last4: '9032', color: '#eb001b' },
+  ];
+  const currentCard = CARDS.find(c => c.id === selectedCard) || CARDS[0];
+
+  const WINDOWS = [
+    { id: 'morning',   label: 'Morning',   sub: '8am – 12pm' },
+    { id: 'afternoon', label: 'Afternoon', sub: '12pm – 5pm' },
+    { id: 'evening',   label: 'Evening',   sub: '5pm – 9pm'  },
+  ];
+
+  const doConfirm = () => {
+    const delivDays = deliveryPref === 'split'
+      ? [selectedDay.short, selectedDay2.short]
+      : [selectedDay.short];
+    onConfirm(selectedMeals, mealCount, delivDays, deliveryPref, total, repeatNextWeek, selectedDay.date);
+    setShowConfirmModal(false);
+  };
+
+  return (
+    <div className="screen" style={{background:'#f6f6f6', paddingBottom:110}}>
+      <StatusBar />
+      <BackHeader title="Review your order" onBack={onBack} />
+
+      {/* Grouped meal list */}
+      <div className="checkout-section">
+        <div className="checkout-section-title">Your meals</div>
+        {uniqueMeals.map(m => (
+          <div key={m.id} className="meal-row">
+            <div className="meal-row-left">
+              <div className="meal-row-name">
+                {m.name}
+                {m.qty > 1 && <span style={{color:'#888',fontWeight:500,fontSize:13}}> ×{m.qty}</span>}
+              </div>
+              <div className="meal-row-price">
+                {m.qty > 1
+                  ? `$${m.price.toFixed(2)} each · $${(m.price * m.qty).toFixed(2)}`
+                  : `$${m.price.toFixed(2)}`}
+              </div>
+            </div>
+            <button className="swap-btn" onClick={() => onSwap(m.id, m.qty)}>Swap</button>
+          </div>
+        ))}
+      </div>
+
+      {/* Meal count */}
+      <div className="checkout-section">
+        <div className="checkout-section-title">Adjust meal count</div>
+        <div style={{display:'flex',gap:8}}>
+          {[5,7,10].map(n => (
+            <button key={n} className={`count-pill${mealCount===n?' active':''}`}
+              style={{flex:1,padding:'10px 4px',fontSize:13}}
+              onClick={() => {
+                if (n > mealCount) {
+                  onAdjustCountUp(n);
+                } else if (n < mealCount) {
+                  // Downward: go back to browse to remove excess — don't leave stale meal list
+                  onAdjustCountDown(n);
+                }
+                // n === mealCount: no-op
+              }}>
+              {n} meals<br/>
+              <span style={{fontSize:11,fontWeight:500}}>${(avgPricePerMeal*n).toFixed(2)}</span>
+            </button>
+          ))}
+        </div>
+        <div style={{fontSize:11,color:'#aaa',marginTop:8}}>
+          Changing your count sends you back to browse to adjust your selection.
+        </div>
+      </div>
+
+      {/* Delivery */}
+      <div className="checkout-section">
+        <div className="checkout-section-title">Delivery</div>
+        <div className="delivery-toggle">
+          <div className={`dt-option${deliveryPref==='all-at-once'?' active':''}`} onClick={()=>setDeliveryPref('all-at-once')}>All at once</div>
+          <div className={`dt-option${deliveryPref==='split'?' active':''}`} onClick={()=>setDeliveryPref('split')}>Split across two days</div>
+        </div>
+        <div className="delivery-desc">
+          {deliveryPref==='all-at-once'
+            ? 'All your meals arrive on one day, chilled and ready to heat.'
+            : 'Your meals arrive in two batches — first half mid-week, second half later.'}
+        </div>
+
+        {deliveryPref === 'all-at-once' ? (
+          <>
+            <div style={{fontSize:13,fontWeight:600,marginTop:12,marginBottom:2}}>Choose delivery day</div>
+            <div className="day-chips" style={{alignItems:'center'}}>
+              {availDays.map(d => (
+                <button key={d.short}
+                  className={`day-chip${selectedDayKey===d.short?' selected':''}`}
+                  onClick={() => setSelectedDayKey(d.short)}
+                  style={{fontSize:12}}>{d.short}</button>
+              ))}
+            </div>
+            <div className="earliest-note">
+              <span style={{color:'#f59e0b'}}>↑</span>
+              <span style={{color:'#888',fontWeight:500}}>Earliest available · partner needs 2 days to prepare</span>
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={{fontSize:13,fontWeight:600,marginTop:12,marginBottom:4}}>First delivery</div>
+            <div className="day-chips" style={{alignItems:'center'}}>
+              {availDays.slice(0,4).map(d => (
+                <button key={d.short}
+                  className={`day-chip${selectedDayKey===d.short?' selected':''}`}
+                  onClick={() => setSelectedDayKey(d.short)} style={{fontSize:12}}>{d.short}</button>
+              ))}
+            </div>
+            <div className="earliest-note"><span style={{color:'#f59e0b'}}>↑</span><span style={{color:'#888',fontWeight:500}}>Earliest available</span></div>
+            <div style={{fontSize:13,fontWeight:600,marginTop:10,marginBottom:4}}>Second delivery</div>
+            <div className="day-chips" style={{alignItems:'center'}}>
+              {availDays.slice(3).map(d => (
+                <button key={d.short} className={`day-chip${selectedDay2Key===d.short?' selected':''}`}
+                  onClick={() => setSelectedDay2Key(d.short)} style={{fontSize:12}}>{d.short}</button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Cutoff notice */}
+      <div className="checkout-section">
+        <div className="cutoff-box">
+          <span className="cutoff-icon">🕐</span>
+          <span>Meals are prepared fresh. Changes must be made <strong>at least 48 hours</strong> before your delivery day.</span>
+        </div>
+      </div>
+
+      {/* Cancellation policy */}
+      <div className="checkout-section">
+        <div className="collapsible-header" onClick={() => setPolicyOpen(p=>!p)}>
+          <span style={{fontSize:14,fontWeight:700}}>Cancellation & pause policy</span>
+          <span style={{fontSize:14}}>{policyOpen?'▲':'▼'}</span>
+        </div>
+        {policyOpen && (
+          <div className="collapsible-body">
+            <div className="policy-item">
+              <div className="policy-title">⏸ Pause delivery</div>
+              Delay your delivery by a few days for a small fee ($2.99). Your meals are held by the partner and delivered on the new date.
+            </div>
+            <div className="policy-item">
+              <div className="policy-title">✕ Cancel order</div>
+              The full meal cost is charged when you cancel, because your partner has already begun preparing your meals. This protects the chefs who cook for you each week.
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Repeat next week toggle — sits above price breakdown so total updates reactively */}
+      <div style={{background:'#fff',marginBottom:8,padding:'14px 16px'}}>
+        <div className="repeat-row" style={{margin:0}} onClick={() => setRepeatNextWeek(r => !r)}>
+          <div style={{flex:1}}>
+            <div style={{fontSize:14,fontWeight:700,marginBottom:2}}>Repeat next week</div>
+            <div style={{fontSize:12,color:'#666',lineHeight:1.3}}>Same meals, same delivery day — one tap to confirm next week</div>
+          </div>
+          <div className={`repeat-toggle${repeatNextWeek?' on':''}`}>
+            <div className="repeat-toggle-knob"/>
+          </div>
+        </div>
+      </div>
+
+      {/* Price breakdown — reacts to repeat toggle */}
+      <div className="checkout-section">
+        <div className="checkout-section-title">Price breakdown</div>
+
+        {repeatNextWeek ? (
+          <>
+            <div style={{fontSize:12,color:'#888',marginBottom:10,fontWeight:500}}>
+              Two separate orders, one per week
+            </div>
+            <div className="price-row">
+              <span className="price-row-label">This week · {mealCount} meals</span>
+              <span className="price-row-val">${total.toFixed(2)}</span>
+            </div>
+            <div className="price-row">
+              <span className="price-row-label" style={{color:'#555'}}>Next week · same {mealCount} meals</span>
+              <span className="price-row-val" style={{color:'#555'}}>${total.toFixed(2)}</span>
+            </div>
+            <div className="price-row" style={{alignItems:'flex-start',marginTop:4}}>
+              <div style={{display:'flex',alignItems:'center',gap:4}}>
+                <span className="price-row-label">Delivery (×2 weeks)</span>
+                <span style={{fontSize:12,color:'#bbb'}}>ⓘ</span>
+              </div>
+              <div style={{textAlign:'right'}}>
+                <div style={{display:'flex',alignItems:'center',gap:3,justifyContent:'flex-end'}}>
+                  <span className="strikethrough" style={{fontSize:14}}>$11.98</span>
+                  <span style={{color:'#c8922a',fontSize:14,fontWeight:700}}>⚡</span>
+                  <span style={{color:'#06C167',fontWeight:700,fontSize:15}}>$0.00</span>
+                </div>
+                <div style={{fontSize:11,color:'#999',marginTop:1}}>Covered by Uber One both weeks</div>
+              </div>
+            </div>
+            <div style={{height:1,background:'#000',margin:'8px 0'}}/>
+            <div className="price-row total">
+              <span className="price-row-label">Total charged today</span>
+              <span className="price-row-val">${(total * 2).toFixed(2)}</span>
+            </div>
+            <div style={{fontSize:11,color:'#888',marginTop:4}}>
+              Charged as two separate transactions of ${total.toFixed(2)} each.
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="price-row">
+              <span className="price-row-label">{mealCount} meals</span>
+              <span className="price-row-val">${total.toFixed(2)}</span>
+            </div>
+            <div className="price-row" style={{alignItems:'flex-start'}}>
+              <div style={{display:'flex',alignItems:'center',gap:4}}>
+                <span className="price-row-label">Delivery fee</span>
+                <span style={{fontSize:12,color:'#bbb',cursor:'default'}}>ⓘ</span>
+              </div>
+              <div style={{textAlign:'right'}}>
+                <div style={{display:'flex',alignItems:'center',gap:3,justifyContent:'flex-end'}}>
+                  <span className="strikethrough" style={{fontSize:14}}>$5.99</span>
+                  <span style={{color:'#c8922a',fontSize:14,fontWeight:700}}>⚡</span>
+                  <span style={{color:'#06C167',fontWeight:700,fontSize:15}}>$0.00</span>
+                </div>
+                <div style={{fontSize:11,color:'#999',marginTop:1}}>Included with Uber One</div>
+              </div>
+            </div>
+            <div style={{height:1,background:'#f0f0f0',margin:'6px 0'}}/>
+            <div className="price-row total">
+              <span className="price-row-label">Total</span>
+              <span className="price-row-val">${total.toFixed(2)}</span>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Payment method (IMG_6368 pattern) */}
+      <div className="checkout-section">
+        <div className="payment-row">
+          <div className="payment-card-icon" style={{background:currentCard.color}}>{currentCard.type}</div>
+          <span className="payment-label">{currentCard.type === 'MC' ? 'Mastercard' : 'Visa'} ····{currentCard.last4}</span>
+          <span className="payment-change" onClick={() => setShowPaymentOptions(o=>!o)}>
+            {showPaymentOptions ? 'Done' : 'Change'} ›
+          </span>
+        </div>
+        {showPaymentOptions && (
+          <div style={{paddingTop:4}}>
+            {CARDS.map(c => (
+              <div key={c.id} className="card-option-row" onClick={() => { setSelectedCard(c.id); setShowPaymentOptions(false); }}>
+                <div className="payment-card-icon" style={{background:c.color,marginRight:10}}>{c.type}</div>
+                <span style={{flex:1,fontSize:14}}>{c.type === 'MC' ? 'Mastercard' : 'Visa'} ····{c.last4}</span>
+                {selectedCard === c.id && <span style={{color:'#06C167',fontWeight:700,fontSize:16}}>✓</span>}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="savings-banner">
+        <span style={{color:'#c8922a'}}>⚡</span>
+        <span>Saving {repeatNextWeek ? '$11.98' : '$5.99'} on delivery with Uber One</span>
+      </div>
+
+      {/* Address, phone, delivery window (IMG_6367 pattern) */}
+      <div className="checkout-section">
+        <div className="checkout-section-title">Delivery details</div>
+        <div className="contact-row">
+          <span className="contact-icon">📍</span>
+          <div className="contact-body">
+            <div className="contact-label">45 Tudor City Pl, 1315</div>
+            <div className="contact-sub">New York, NY · Meet at my door</div>
+          </div>
+          <span className="contact-chevron">›</span>
+        </div>
+        <div className="contact-row">
+          <span className="contact-icon">📞</span>
+          <div className="contact-body">
+            <div className="contact-label">+1 646-884-4208</div>
+          </div>
+          <span className="contact-chevron">›</span>
+        </div>
+        <div style={{marginTop:10}}>
+          <div style={{fontSize:13,fontWeight:700,marginBottom:6}}>
+            Delivery window · {selectedDay.short}
+          </div>
+          <div className="window-chips">
+            {WINDOWS.map(w => (
+              <button key={w.id} className={`window-chip${deliveryWindow===w.id?' selected':''}`}
+                onClick={() => setDeliveryWindow(w.id)}>
+                {w.label}<br/><span style={{fontWeight:500,opacity:0.85}}>{w.sub}</span>
+              </button>
+            ))}
+          </div>
+          <div className="cold-food-warning">
+            <span style={{fontSize:16,flexShrink:0}}>ℹ️</span>
+            <span>Your meals arrive cold and must be refrigerated immediately. Please select a window when you'll be available to receive them.</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="sticky-cta">
+        <button className="cta-btn green" onClick={() => setShowConfirmModal(true)}>
+          Confirm Meal Prep — ${repeatNextWeek ? (total * 2).toFixed(2) : total.toFixed(2)}
+        </button>
+        {repeatNextWeek && (
+          <div style={{fontSize:11,color:'#555',textAlign:'center',marginTop:6,fontWeight:500}}>
+            ${total.toFixed(2)} this week + ${total.toFixed(2)} next week
+          </div>
+        )}
+        <div style={{fontSize:11,color:'#aaa',textAlign:'center',marginTop:4}}>
+          All-in pricing · No hidden fees · Uber One benefits applied
+        </div>
+      </div>
+
+      {/* Pre-confirmation modal */}
+      {showConfirmModal && (
+        <div className="modal-overlay" onClick={() => setShowConfirmModal(false)}>
+          <div className="modal-sheet" onClick={e => e.stopPropagation()}>
+            <div className="modal-handle"/>
+            <div className="modal-title">Before you confirm</div>
+            <div className="modal-body">
+              Once confirmed, {PARTNERS[partner]?.name} will begin preparing your meals right away. You won't be able to cancel once prep starts, but you can always pause delivery and choose a different date.
+            </div>
+            <button className="modal-primary" onClick={doConfirm}>
+              Confirm order
+            </button>
+            <button className="modal-secondary" onClick={() => setShowConfirmModal(false)}>
+              Go back
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── SCREEN 5: CONFIRMATION ──────────────────────────────────────────────────
+
+const ConfirmationScreen = ({ order, onSwapMeals, onNav, onHomeWithCheck }) => {
+  const [recommitted, setRecommitted] = useState(order.repeatNextWeek || false);
+  const [skipped, setSkipped] = useState(false);
+  const partnerData = PARTNERS[order.partner];
+
+  // Unique meals for summary display
+  const uniqueMeals = useMemo(() => {
+    const map = {};
+    (order.meals || []).forEach(m => {
+      if (map[m.id]) map[m.id].qty++;
+      else map[m.id] = { ...m, qty: 1 };
+    });
+    return Object.values(map);
+  }, [order.meals]);
+
+  const nextWeekLabel = order.nextWeekDate
+    ? order.nextWeekDate.toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric'})
+    : null;
+
+  const handleHomeNav = () => {
+    if (!recommitted && !skipped) onHomeWithCheck();
+    else onNav('home');
+  };
+
+  return (
+    <div className="screen" style={{background:'#f6f6f6'}}>
+      <StatusBar />
+      <div className="confirm-header">
+        <div className="confirm-check">✓</div>
+        <div className="confirm-title">You're all set!</div>
+        <div className="confirm-sub">{partnerData.name} · {order.days.join(' & ')} delivery</div>
+        {order.repeatNextWeek && nextWeekLabel && (
+          <div className="next-week-row" style={{marginTop:12}}>
+            <span>📅</span>
+            <span>Next week also confirmed: <strong>{nextWeekLabel}</strong></span>
+          </div>
+        )}
+      </div>
+
+      <div className="order-summary-card">
+        <div className="checkout-section-title" style={{marginBottom:8}}>Order summary</div>
+        {uniqueMeals.slice(0,3).map(m => (
+          <div key={m.id} className="order-sum-row">
+            <span className="order-sum-label">{m.name}{m.qty > 1 ? ` ×${m.qty}` : ''}</span>
+            <span className="order-sum-val">${(m.price * m.qty).toFixed(2)}</span>
+          </div>
+        ))}
+        {uniqueMeals.length > 3 && (
+          <div className="order-sum-row">
+            <span className="order-sum-label">+ {uniqueMeals.length - 3} more</span>
+            <span className="order-sum-val"/>
+          </div>
+        )}
+        {order.repeatNextWeek ? (
+          <>
+            <div style={{height:1,background:'#f0f0f0',margin:'8px 0'}}/>
+            <div className="order-sum-row">
+              <span className="order-sum-label">This week ({order.days.join(' & ')})</span>
+              <span className="order-sum-val">${order.total.toFixed(2)}</span>
+            </div>
+            <div className="order-sum-row">
+              <span className="order-sum-label">Next week ({nextWeekLabel ? nextWeekLabel.split(',')[0] : 'next week'})</span>
+              <span className="order-sum-val">${order.total.toFixed(2)}</span>
+            </div>
+            <div className="order-sum-row" style={{marginTop:4,borderTop:'2px solid #000',paddingTop:10}}>
+              <span className="order-sum-label" style={{fontWeight:800,fontSize:15}}>Combined total (2 weeks)</span>
+              <span className="order-sum-val" style={{color:'#000',fontWeight:800,fontSize:15}}>${(order.total * 2).toFixed(2)}</span>
+            </div>
+            <div style={{fontSize:11,color:'#888',marginTop:6}}>Two separate charges of ${order.total.toFixed(2)} — one per delivery week.</div>
+          </>
+        ) : (
+          <div className="order-sum-row" style={{marginTop:4,borderTop:'1px solid #f0f0f0',paddingTop:10}}>
+            <span className="order-sum-label" style={{fontWeight:700}}>Total</span>
+            <span className="order-sum-val" style={{color:'#06C167'}}>${order.total.toFixed(2)}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Re-commitment prompt */}
+      {!skipped && (
+        <div className="recommit-card">
+          <div className="recommit-label">Coming up · Next week</div>
+          {nextWeekLabel && (
+            <div style={{fontSize:13,color:'#555',fontWeight:600,marginBottom:6}}>
+              Your next delivery is scheduled for {nextWeekLabel}
+            </div>
+          )}
+          <div className="recommit-title">
+            {recommitted ? '✓ Next week confirmed!' : 'Set up next week?'}
+          </div>
+          <div className="recommit-sub">
+            {recommitted
+              ? `Same ${order.meals.length} meals from ${partnerData.name} locked in for ${nextWeekLabel || 'next week'}.`
+              : `Same ${order.meals.length} meals pre-selected. One tap to confirm.`}
+          </div>
+          {!recommitted && (
+            <div className="recommit-actions">
+              <button className="recommit-primary" onClick={() => setRecommitted(true)}>
+                Re-commit — ${order.total.toFixed(2)}
+              </button>
+              <button className="recommit-secondary" onClick={() => onSwapMeals(order.meals)}>
+                Swap meals →
+              </button>
+              <button className="recommit-skip" onClick={() => setSkipped(true)}>
+                Skip next week
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      <BottomNav activeTab="mealprep" onNav={tab => tab === 'home' ? handleHomeNav() : onNav(tab)} />
+    </div>
+  );
+};
+
+// ─── SCREEN 6: PARTNER SWITCH ─────────────────────────────────────────────────
+
+const PartnerSwitchScreen = ({ currentPartner, onTryOther, onMaybeLater, fromCancel }) => {
+  const other = currentPartner === 'cookunity' ? PARTNERS.factor : PARTNERS.cookunity;
+  const current = PARTNERS[currentPartner];
+  return (
+    <div className="screen white-bg" style={{paddingBottom:130}}>
+      <StatusBar />
+      <div className="ps-intercept">
+        <div style={{height:16}}/>
+        {fromCancel ? (
+          <>
+            <div className="psi-eyebrow">Order cancelled</div>
+            <div className="psi-title">Want to try something different?</div>
+            <div className="psi-sub">We cancelled your {current.name} order. {other.name} has a different lineup — great time to explore.</div>
+          </>
+        ) : (
+          <>
+            <div className="psi-eyebrow">Before you go</div>
+            <div className="psi-title">Not feeling<br/>{current.name}?</div>
+            <div className="psi-sub">Try {other.name} — a different approach to meal prep that might be a better fit.</div>
+          </>
+        )}
+
+        <div className="psi-incentive">
+          🎁 $5 off your first {other.name} order
+        </div>
+
+        <div className="psi-partner-card">
+          <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:10}}>
+            <div className="ps-logo" style={{background:other.color,margin:0}}>{other.shortName}</div>
+            <div>
+              <div style={{fontSize:18,fontWeight:800}}>{other.name}</div>
+              <div style={{fontSize:12,color:'#666'}}>{other.tagline}</div>
+            </div>
+          </div>
+          <div style={{fontSize:14,fontWeight:600,marginBottom:4}}>{other.priceRange}</div>
+          <div style={{fontSize:13,color:'#555',marginBottom:10}}>💪 {other.macroHighlight}</div>
+          <UberOneBadge />
+        </div>
+
+        <div className="sticky-cta">
+          <button className="psi-try-btn" style={{marginBottom:8}} onClick={() => onTryOther(other.id)}>
+            Try {other.name}
+          </button>
+          <button className="psi-later-btn" onClick={onMaybeLater}>
+            Maybe later
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── ORDERS SCREEN ────────────────────────────────────────────────────────────
+
+const OrdersScreen = ({ activeOrders, onManageOrder, onViewOrder, onNav }) => {
+  const orderList = Object.values(activeOrders || {});
+  return (
+    <div className="screen" style={{background:'#f6f6f6'}}>
+      <StatusBar />
+      <div className="screen-header" style={{justifyContent:'flex-start',gap:0}}>
+        <span className="header-title" style={{fontSize:22,fontWeight:900,letterSpacing:'-0.6px'}}>Orders</span>
+      </div>
+      <div className="orders-content">
+        {orderList.length > 0 ? (
+          <>
+            <div style={{fontSize:13,fontWeight:700,color:'#888',textTransform:'uppercase',letterSpacing:0.5,marginBottom:10}}>Active Meal Prep</div>
+            {orderList.map(order => (
+              <div key={order.partner} className="active-order-card" style={{cursor:'pointer'}}
+                onClick={() => onViewOrder(order.partner)}>
+                <div className="aoc-header">
+                  <div className="aoc-logo" style={{background:PARTNERS[order.partner].color}}>
+                    {PARTNERS[order.partner].shortName}
+                  </div>
+                  <div style={{flex:1}}>
+                    <div className="aoc-title">{PARTNERS[order.partner].name}</div>
+                    <div className="aoc-status">🟢 Preparing your meals</div>
+                  </div>
+                  <span style={{fontSize:18,color:'#ccc'}}>›</span>
+                </div>
+                <div className="aoc-details">
+                  {order.meals.length} meals · {order.days.join(' & ')}
+                  {order.repeatNextWeek ? ' · 2 weeks' : ''}<br/>
+                  Total: <strong>${order.repeatNextWeek ? (order.total*2).toFixed(2) : order.total.toFixed(2)}</strong> · All-in with Uber One
+                </div>
+                <div className="aoc-actions" onClick={e => e.stopPropagation()}>
+                  <button className="aoc-btn pause" onClick={() => onManageOrder(order.partner, 'pause')}>⏸ Pause</button>
+                  <button className="aoc-btn cancel" onClick={() => onManageOrder(order.partner, 'cancel')}>✕ Cancel</button>
+                </div>
+              </div>
+            ))}
+          </>
+        ) : (
+          <div className="no-orders">
+            <div className="no-orders-icon">📋</div>
+            <div className="no-orders-text">No active orders</div>
+            <div style={{fontSize:13,color:'#aaa',marginTop:4}}>Your Meal Prep orders will appear here.</div>
+          </div>
+        )}
+      </div>
+      <BottomNav activeTab="orders" onNav={onNav} />
+    </div>
+  );
+};
+
+// ─── CANCEL/PAUSE SCREEN ──────────────────────────────────────────────────────
+
+const CancelPauseScreen = ({ mode: initMode, order, onBack, onNav, onCancelComplete }) => {
+  const [mode, setMode] = useState(initMode || null);
+  const availDays = useMemo(() => getAvailableDays(), []);
+  const [pauseDayKey, setPauseDayKey] = useState(availDays[2]?.short || availDays[0]?.short || '');
+  const [cancelStep, setCancelStep] = useState(1);
+  const [pauseDone, setPauseDone] = useState(false);
+  // cancelSel: per-unit selection. w1d1 = Week 1 (or W1 Delivery 1 if split), w1d2 = W1 Delivery 2 (split only), w2 = Week 2
+  const [cancelSel, setCancelSel] = useState({ w1d1: false, w1d2: false, w2: false });
+  const partnerData = PARTNERS[order.partner];
+  const pauseDay = availDays.find(d => d.short === pauseDayKey) || availDays[2] || availDays[0];
+
+  const isSplit = order.deliveryPref === 'split';
+  const hasRepeat = !!order.repeatNextWeek;
+  const nextWeekLabel = order.nextWeekDate
+    ? new Date(order.nextWeekDate).toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'})
+    : null;
+
+  // Pricing: split delivery → each day = half the weekly cost; whole week or repeat = full total
+  const w1d1Cost = isSplit ? order.total / 2 : order.total;
+  const w1d2Cost = order.total / 2;
+  const w2Cost   = order.total;
+  const cancelTotal = (cancelSel.w1d1 ? w1d1Cost : 0) + (cancelSel.w1d2 ? w1d2Cost : 0) + (cancelSel.w2 ? w2Cost : 0);
+  const hasW1Selected = cancelSel.w1d1 || cancelSel.w1d2;
+  const showW1W2Warning = hasW1Selected && hasRepeat && !cancelSel.w2;
+
+  const toggleSel = (key) => { setCancelSel(prev => ({...prev, [key]: !prev[key]})); setCancelStep(1); };
+
+  const CancelCheckRow = ({ selKey, label, sublabel, cost }) => (
+    <div className="cancel-week-row" onClick={() => toggleSel(selKey)}>
+      <div className={`cancel-week-box${cancelSel[selKey] ? ' checked' : ''}`}>
+        {cancelSel[selKey] && <span style={{color:'#fff',fontWeight:900,fontSize:13,lineHeight:1}}>✓</span>}
+      </div>
+      <div className="cancel-week-info">
+        <div className="cancel-week-label">{label}</div>
+        <div className="cancel-week-date">{sublabel}</div>
+      </div>
+      <div className="cancel-week-price">${cost.toFixed(2)}</div>
+    </div>
+  );
+
+  if (pauseDone) return (
+    <div className="screen white-bg">
+      <StatusBar />
+      <BackHeader title="Orders" onBack={() => onNav('orders')} />
+      <div style={{textAlign:'center',padding:'48px 24px'}}>
+        <div style={{fontSize:48,marginBottom:16}}>⏸</div>
+        <div style={{fontSize:22,fontWeight:900,marginBottom:8,letterSpacing:'-0.5px'}}>Delivery paused</div>
+        <div style={{fontSize:14,color:'#666',lineHeight:1.5}}>
+          Your meals will now arrive on <strong>{pauseDay?.full || pauseDayKey}</strong>. The $2.99 pause fee has been applied.
+        </div>
+        <button className="cta-btn black" style={{marginTop:28}} onClick={() => onNav('orders')}>Back to Orders</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="screen" style={{background:'#f6f6f6'}}>
+      <StatusBar />
+      <BackHeader title="Manage order" onBack={onBack} />
+      <div className="cp-content">
+        <div style={{background:'#fff',borderRadius:16,padding:16,marginBottom:16,boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}}>
+          <div style={{fontSize:13,color:'#888',marginBottom:4}}>Active order</div>
+          <div style={{fontSize:16,fontWeight:800}}>{partnerData.name}</div>
+          <div style={{fontSize:13,color:'#666',marginTop:2}}>{order.meals.length} meals · {order.days.join(' & ')} · ${order.total.toFixed(2)}</div>
+        </div>
+
+        {/* Pause card */}
+        <div className={`cp-option-card${mode==='pause'?' selected':''}`} onClick={() => {setMode('pause');setCancelStep(1);}}>
+          <div className="cp-option-icon">⏸</div>
+          <div className="cp-option-title">Pause delivery</div>
+          <div className="cp-option-desc">Select a new delivery date. Your meals are held by {partnerData.name} and delivered on your chosen day.</div>
+          <div className="cp-option-fee" style={{color:'#333'}}>Pause fee: $2.99</div>
+          {mode === 'pause' && (
+            <div className="pause-days">
+              <div className="pause-days-label">New delivery day</div>
+              <div className="day-chips" style={{padding:'0 0 4px'}}>
+                {availDays.map(d => (
+                  <button key={d.short} className={`day-chip${pauseDayKey===d.short?' selected':''}`}
+                    onClick={e=>{e.stopPropagation();setPauseDayKey(d.short)}}
+                    style={{fontSize:12}}>{d.short}</button>
+                ))}
+              </div>
+              <div className="sticky-cta" style={{margin:'12px -18px -18px',borderRadius:'0 0 16px 16px'}}>
+                <button className="cta-btn green" onClick={() => setPauseDone(true)}>
+                  Confirm pause — $2.99 fee
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Cancel card */}
+        <div className={`cp-option-card cancel-mode${mode==='cancel'?' selected':''}`} onClick={() => {setMode('cancel');setCancelStep(1);}}>
+          <div className="cp-option-icon">✕</div>
+          <div className="cp-option-title" style={{color:'#e74c3c'}}>Cancel order</div>
+          <div className="cp-option-desc">
+            {partnerData.name} has already begun preparing your meals. Cancelling charges the full meal cost to protect the chefs cooking for you.
+          </div>
+          {!order.repeatNextWeek && (
+            <div className="cp-option-fee" style={{color:'#e74c3c'}}>Cancellation charge: ${order.total.toFixed(2)}</div>
+          )}
+          {order.repeatNextWeek && (
+            <div className="cp-option-fee" style={{color:'#e74c3c'}}>Select week(s) to cancel below</div>
+          )}
+          {mode === 'cancel' && (
+            <div onClick={e=>e.stopPropagation()}>
+              <div style={{fontSize:13,color:'#555',margin:'10px 0 6px',lineHeight:1.4}}>
+                Select which deliveries to cancel. Each cancellation charges the full meal cost.
+              </div>
+
+              {/* ── Week 1 rows ── */}
+              {isSplit ? (
+                <>
+                  <CancelCheckRow selKey="w1d1"
+                    label={`Week 1 · Delivery 1 · ${order.days[0] || '—'}`}
+                    sublabel="First half of meals · chefs have started cooking"
+                    cost={w1d1Cost} />
+                  <CancelCheckRow selKey="w1d2"
+                    label={`Week 1 · Delivery 2 · ${order.days[1] || '—'}`}
+                    sublabel="Second half of meals"
+                    cost={w1d2Cost} />
+                </>
+              ) : (
+                <CancelCheckRow selKey="w1d1"
+                  label={`Week 1 · ${order.days[0] || '—'}`}
+                  sublabel="Chefs have started cooking your meals"
+                  cost={w1d1Cost} />
+              )}
+
+              {/* ── Week 2 row (only if repeat was scheduled) ── */}
+              {hasRepeat && nextWeekLabel && (
+                <CancelCheckRow selKey="w2"
+                  label={`Week 2 · ${nextWeekLabel}`}
+                  sublabel="Next week delivery — being prepared"
+                  cost={w2Cost} />
+              )}
+
+              {/* Warning: cancelling W1 won't auto-cancel W2 */}
+              {showW1W2Warning && (
+                <div style={{background:'#fff8e1',borderLeft:'3px solid #f59e0b',padding:'10px 12px',margin:'8px 0',borderRadius:8,fontSize:12,color:'#78350f',lineHeight:1.4}}>
+                  Cancelling Week 1 will <strong>not</strong> automatically cancel Week 2 — cancel Week 2 separately if needed.
+                </div>
+              )}
+
+              {cancelTotal > 0 ? (
+                <>
+                  <div className="cancel-warning" style={{marginTop:8}}>
+                    <div className="cancel-warning-text">
+                      <strong>${cancelTotal.toFixed(2)} will be charged.</strong><br/>
+                      This charge goes directly to {partnerData.name}'s chefs who are preparing your meals.
+                    </div>
+                  </div>
+                  {cancelStep === 1 && (
+                    <button className="danger-btn" onClick={() => setCancelStep(2)}>
+                      I understand, cancel selected
+                    </button>
+                  )}
+                  {cancelStep === 2 && (
+                    <button className="danger-btn confirm-step" onClick={() => onCancelComplete(order.partner, cancelSel)}>
+                      Cancel selected orders — ${cancelTotal.toFixed(2)}
+                    </button>
+                  )}
+                </>
+              ) : (
+                <div style={{fontSize:13,color:'#aaa',textAlign:'center',padding:'12px 0'}}>
+                  Select at least one delivery to cancel
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+      <BottomNav activeTab="orders" onNav={onNav} />
+    </div>
+  );
+};
+
+// ─── ORDER DETAIL SCREEN ─────────────────────────────────────────────────────
+
+const OrderDetailScreen = ({ order, onBack, onNav, onUpdateDeliveryDates }) => {
+  if (!order) return null;
+  const partnerData = PARTNERS[order.partner];
+  const availDays = useMemo(() => getAvailableDays(), []);
+  const [editingKey, setEditingKey] = useState(null);
+  const [editDayKey, setEditDayKey] = useState(availDays[0]?.short || '');
+  // localDays persists edits without full remount; synced to App via onUpdateDeliveryDates
+  const [localDays, setLocalDays] = useState(() => order.days || []);
+
+  const uniqueMeals = useMemo(() => {
+    const map = {};
+    (order.meals || []).forEach(m => {
+      if (map[m.id]) map[m.id].qty++;
+      else map[m.id] = { ...m, qty: 1 };
+    });
+    return Object.values(map);
+  }, [order.meals]);
+
+  const nextWeekLabel = order.nextWeekDate
+    ? new Date(order.nextWeekDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+    : null;
+
+  // Editability: a delivery day is editable if its short string is still in availDays (≥2 days from now)
+  const isEditable = (dayStr) => !!dayStr && availDays.some(d => d.short === dayStr);
+
+  // Split delivery: split by TOTAL MEAL COUNT, extra meal to first delivery
+  const flatMeals = order.meals || [];
+  const d1Count = Math.ceil(flatMeals.length / 2);
+  const groupMeals = (arr) => {
+    const map = {};
+    arr.forEach(m => { if (map[m.id]) map[m.id].qty++; else map[m.id] = { ...m, qty: 1 }; });
+    return Object.values(map);
+  };
+  const d1Grouped = groupMeals(flatMeals.slice(0, d1Count));
+  const d2Grouped = groupMeals(flatMeals.slice(d1Count));
+
+  const confirmDateEdit = (dayIndex) => {
+    const updated = [...localDays];
+    updated[dayIndex] = editDayKey;
+    setLocalDays(updated);
+    if (onUpdateDeliveryDates) onUpdateDeliveryDates(order.partner, updated);
+    setEditingKey(null);
+  };
+
+  const EditDatePicker = ({ dKey, dayIndex }) => (
+    editingKey === dKey ? (
+      <>
+        <div style={{ fontSize: 13, fontWeight: 600, marginTop: 10, marginBottom: 6 }}>Select new delivery day</div>
+        <div className="day-chips">
+          {availDays.map(d => (
+            <button key={d.short} className={`day-chip${editDayKey === d.short ? ' selected' : ''}`}
+              onClick={() => setEditDayKey(d.short)} style={{ fontSize: 12 }}>{d.short}</button>
+          ))}
+        </div>
+        <div style={{ fontSize: 11, color: '#aaa', marginTop: 5 }}>Partner needs 48h notice · showing available dates</div>
+        <button className="cta-btn green" style={{ marginTop: 10, padding: '11px', borderRadius: 12 }}
+          onClick={() => confirmDateEdit(dayIndex)}>
+          Confirm — {editDayKey}
+        </button>
+      </>
+    ) : isEditable(localDays[dayIndex]) ? (
+      <button className="edit-delivery-btn" onClick={() => { setEditingKey(dKey); setEditDayKey(localDays[dayIndex] || availDays[0]?.short || ''); }}>
+        Edit delivery date →
+      </button>
+    ) : (
+      <div className="edit-delivery-disabled">🔒 Cannot edit — preparation has begun (within 48 hours)</div>
+    )
+  );
+
+  const isSplit = order.deliveryPref === 'split';
+
+  return (
+    <div className="screen" style={{ background: '#f6f6f6' }}>
+      <StatusBar />
+      <BackHeader title={partnerData.name} onBack={onBack} />
+
+      {/* Status */}
+      <div className="order-detail-section">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div className="aoc-logo" style={{ background: partnerData.color }}>{partnerData.shortName}</div>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 17 }}>{partnerData.name}</div>
+            <div style={{ fontSize: 12, color: '#06C167', fontWeight: 600, marginTop: 2 }}>🟢 Preparing your meals</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Full meal list */}
+      <div className="order-detail-section">
+        <div className="checkout-section-title">Your {flatMeals.length} meals</div>
+        {uniqueMeals.map(m => (
+          <div key={m.id} className="meal-row">
+            <div className="meal-row-left">
+              <div className="meal-row-name">{m.name}{m.qty > 1 ? ` ×${m.qty}` : ''}</div>
+              <div className="meal-row-price">${(m.price * m.qty).toFixed(2)}</div>
+            </div>
+          </div>
+        ))}
+        <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: 10, marginTop: 8 }} className="price-row total">
+          <span className="price-row-label">Week 1 total</span>
+          <span className="price-row-val" style={{ color: '#06C167' }}>${order.total.toFixed(2)}</span>
+        </div>
+      </div>
+
+      {/* ── WEEK 1 DELIVERY SCHEDULE ── */}
+      <div className="order-detail-section">
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>
+          Week 1 · Delivery schedule
+        </div>
+
+        {isSplit ? (
+          <>
+            <div className="split-delivery-group">
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#555', marginBottom: 4 }}>
+                First delivery · {d1Count} meals
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 8 }}>{localDays[0] || '—'}</div>
+              <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>Scheduled meals:</div>
+              {d1Grouped.map(m => (
+                <div key={m.id} style={{ fontSize: 13, color: '#444', padding: '2px 0' }}>
+                  {m.name}{m.qty > 1 ? ` ×${m.qty}` : ''}
+                </div>
+              ))}
+              <EditDatePicker dKey="d1" dayIndex={0} />
+            </div>
+
+            <div className="split-delivery-group">
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#555', marginBottom: 4 }}>
+                Second delivery · {flatMeals.length - d1Count} meals
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 8 }}>{localDays[1] || '—'}</div>
+              <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>Scheduled meals:</div>
+              {d2Grouped.map(m => (
+                <div key={m.id} style={{ fontSize: 13, color: '#444', padding: '2px 0' }}>
+                  {m.name}{m.qty > 1 ? ` ×${m.qty}` : ''}
+                </div>
+              ))}
+              <EditDatePicker dKey="d2" dayIndex={1} />
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 4 }}>{localDays[0]}</div>
+            <div style={{ fontSize: 13, color: '#666', marginBottom: 10 }}>
+              All {flatMeals.length} meals · one delivery
+            </div>
+            <EditDatePicker dKey="d1" dayIndex={0} />
+          </>
+        )}
+      </div>
+
+      {/* ── WEEK 2 — active ── */}
+      {order.repeatNextWeek && nextWeekLabel && (
+        <div className="repeat-week-section">
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#7c3aed', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
+            Week 2 · Scheduled
+          </div>
+          <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 4 }}>{nextWeekLabel}</div>
+          <div style={{ fontSize: 13, color: '#555', marginBottom: 10 }}>
+            Same {flatMeals.length} meals · ${order.total.toFixed(2)} · All-in with Uber One
+          </div>
+          {uniqueMeals.slice(0, 3).map(m => (
+            <div key={m.id} style={{ fontSize: 13, color: '#444', padding: '2px 0' }}>
+              {m.name}{m.qty > 1 ? ` ×${m.qty}` : ''}
+            </div>
+          ))}
+          {uniqueMeals.length > 3 && (
+            <div style={{ fontSize: 13, color: '#888', padding: '2px 0' }}>+ {uniqueMeals.length - 3} more meals</div>
+          )}
+          <div style={{ marginTop: 10 }}>
+            {editingKey === 'w2' ? (
+              <>
+                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Select week 2 delivery day</div>
+                <div className="day-chips">
+                  {availDays.map(d => (
+                    <button key={d.short} className={`day-chip${editDayKey === d.short ? ' selected' : ''}`}
+                      onClick={() => setEditDayKey(d.short)} style={{ fontSize: 12 }}>{d.short}</button>
+                  ))}
+                </div>
+                <button className="cta-btn green" style={{ marginTop: 10, padding: '11px', borderRadius: 12 }}
+                  onClick={() => setEditingKey(null)}>Confirm — {editDayKey}</button>
+              </>
+            ) : (
+              <button className="edit-delivery-btn" style={{ color: '#7c3aed' }}
+                onClick={() => { setEditingKey('w2'); setEditDayKey(availDays[0]?.short || ''); }}>
+                Edit week 2 delivery date →
+              </button>
+            )}
+          </div>
+          <div style={{ fontSize: 12, color: '#999', marginTop: 10 }}>
+            To cancel Week 2, go to Manage order → Cancel.
+          </div>
+        </div>
+      )}
+
+      {/* ── WEEK 2 — cancelled ── */}
+      {order.week2Cancelled && (
+        <div className="week2-cancelled-section">
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#e74c3c', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
+            Week 2 · Cancelled
+          </div>
+          <div style={{ fontSize: 14, color: '#666', lineHeight: 1.4 }}>
+            Your Week 2 order has been cancelled. Week 1 deliveries are unaffected and will proceed as scheduled.
+          </div>
+        </div>
+      )}
+
+      <BottomNav activeTab="orders" onNav={onNav} />
+    </div>
+  );
+};
+
+// ─── ACCOUNT SCREEN ───────────────────────────────────────────────────────────
+
+const AccountScreen = ({ onNav }) => (
+  <div className="screen white-bg">
+    <StatusBar />
+    <div className="account-content">
+      <div className="account-avatar">T</div>
+      <div style={{fontSize:20,fontWeight:800,marginBottom:4}}>Tafari McKenzie</div>
+      <div style={{fontSize:14,color:'#888',marginBottom:24}}>thuntermckenzie@gmail.com</div>
+      <div style={{background:'#f6f6f6',borderRadius:16,padding:16,textAlign:'left'}}>
+        {['Payment methods','Addresses','Promotions','Uber One','Help'].map(item => (
+          <div key={item} style={{padding:'13px 0',borderBottom:'1px solid #ececec',fontSize:15,fontWeight:500,display:'flex',justifyContent:'space-between',cursor:'pointer'}}>
+            <span>{item}</span><span style={{color:'#ccc'}}>›</span>
+          </div>
+        ))}
+      </div>
+    </div>
+    <BottomNav activeTab="account" onNav={onNav} />
+  </div>
+);
+
+// ─── ROOT APP ─────────────────────────────────────────────────────────────────
+
+const App = () => {
+  const [nav, dispatch] = useReducer(navReducer, { screen: 'home', direction: 'forward', extra: null });
+  const [selectedPartner, setSelectedPartner] = useState(null);
+  const [selectedMeals, setSelectedMeals] = useState([]);   // flat array, dupes allowed for qty
+  const [mealCount, setMealCount] = useState(7);
+  const [activeOrders, setActiveOrders] = useState({});     // { [partnerId]: order }
+  const [preloadedMeals, setPreloadedMeals] = useState(null);
+  const [cancelPauseMode, setCancelPauseMode] = useState(null);
+  const [cancelPartner, setCancelPartner] = useState(null); // which partner is being managed
+  const [swapState, setSwapState] = useState(null);         // { mealId, qty } when swapping
+  const [cancelledPartner, setCancelledPartner] = useState(null);
+  const [addMoreMessage, setAddMoreMessage] = useState(null);
+  const [viewingOrderPartner, setViewingOrderPartner] = useState(null);
+  const [animClass, setAnimClass] = useState('');
+  const prevScreen = useRef('home');
+
+  // Currently active order for the selected partner
+  const activeOrderForPartner = selectedPartner ? activeOrders[selectedPartner] : null;
+
+  const go = useCallback((screen, dir='forward') => {
+    prevScreen.current = nav.screen;
+    setAnimClass(dir==='forward' ? 'slide-enter-right' : 'slide-enter-left');
+    dispatch({ type: 'GO', screen, direction: dir });
+  }, [nav.screen]);
+
+  useEffect(() => {
+    if (animClass) {
+      const t = setTimeout(() => setAnimClass(''), 350);
+      return () => clearTimeout(t);
+    }
+  }, [animClass]);
+
+  const handleNav = (tab) => {
+    if (tab === 'home') go('home', 'back');
+    else if (tab === 'mealprep') go('partner-select', 'forward');
+    else if (tab === 'orders') go('orders', 'forward');
+    else if (tab === 'account') go('account', 'forward');
+  };
+
+  // Select partner from comparison screen
+  const handleSelectPartner = (pid) => {
+    if (pid !== selectedPartner) {
+      setSelectedMeals([]); setPreloadedMeals(null);
+    } else {
+      setPreloadedMeals(selectedMeals); // restore cart for same partner
+    }
+    setSelectedPartner(pid);
+    setSwapState(null);
+    setAddMoreMessage(null);
+    go('meal-browse');
+  };
+
+  // Tap specific partner card on home → go directly to browse
+  const handleGoToPartnerBrowse = (pid) => {
+    if (pid !== selectedPartner) {
+      setSelectedMeals([]); setPreloadedMeals(null);
+    } else {
+      setPreloadedMeals(selectedMeals);
+    }
+    setSelectedPartner(pid);
+    setSwapState(null);
+    setAddMoreMessage(null);
+    go('meal-browse');
+  };
+
+  const handleContinue = (meals, count) => {
+    setSelectedMeals(meals);
+    setMealCount(count);
+    setAddMoreMessage(null);
+    go('checkout');
+  };
+
+  const handleConfirm = (meals, count, days, pref, total, repeatNextWeek, deliveryDate) => {
+    const nextWeekDate = deliveryDate ? new Date(new Date(deliveryDate).setDate(deliveryDate.getDate() + 7)) : null;
+    const order = { partner: selectedPartner, meals, mealCount: count, days, deliveryPref: pref, total, repeatNextWeek, deliveryDate, nextWeekDate };
+    setActiveOrders(prev => ({ ...prev, [selectedPartner]: order }));
+    go('confirmation');
+  };
+
+  // Upward count adjust from checkout → go back to browse with message
+  const handleAdjustCountUp = (newCount) => {
+    const needed = newCount - selectedMeals.length;
+    setMealCount(newCount);
+    setPreloadedMeals(selectedMeals);
+    setAddMoreMessage(`Select ${needed} more meal${needed !== 1 ? 's' : ''} to complete your order`);
+    go('meal-browse', 'back');
+  };
+
+  // Downward count adjust from checkout → go back to browse with remove message
+  const handleAdjustCountDown = (newCount) => {
+    const excess = selectedMeals.length - newCount;
+    setMealCount(newCount);
+    setPreloadedMeals(selectedMeals);
+    setAddMoreMessage(`You've reduced your order to ${newCount} meals — remove ${excess} meal${excess !== 1 ? 's' : ''} from your cart or swap to match your new count.`);
+    go('meal-browse', 'back');
+  };
+
+  // View order detail from Orders tab
+  const handleViewOrder = (partnerId) => {
+    setViewingOrderPartner(partnerId);
+    go('order-detail');
+  };
+
+  const handleSwapMeal = (mealId, qty) => {
+    setSwapState({ mealId, qty });
+    setSelectedMeals(prev => prev.filter(m => m.id !== mealId));
+    go('meal-browse', 'back');
+  };
+
+  const handleSwapComplete = (newMeal) => {
+    const { qty } = swapState || { qty: 1 };
+    setSelectedMeals(prev => [...prev, ...Array(qty).fill(newMeal)]);
+    setSwapState(null);
+    go('checkout');
+  };
+
+  const handleSwapMealsRecommit = (meals) => {
+    setPreloadedMeals(meals);
+    setSwapState(null);
+    go('meal-browse', 'forward');
+  };
+
+  const handleHomeWithCheck = () => {
+    if (Object.keys(activeOrders).length > 0) go('partner-switch', 'forward');
+    else go('home', 'back');
+  };
+
+  const handleTryOther = (pid) => {
+    setCancelledPartner(null);
+    setSelectedPartner(pid);
+    setSelectedMeals([]); setPreloadedMeals(null);
+    setSwapState(null); setAddMoreMessage(null);
+    go('meal-browse');
+  };
+
+  const handleManageOrder = (partnerId, mode) => {
+    setCancelPartner(partnerId);
+    setCancelPauseMode(mode);
+    go('cancel-pause');
+  };
+
+  const handleCancelComplete = (partnerName, cancelSel) => {
+    const w1Cancelled = cancelSel?.w1d1 || cancelSel?.w1d2;
+    const w2Only = cancelSel?.w2 && !w1Cancelled;
+
+    if (w2Only) {
+      // Week 2 only: keep order active, mark week 2 as cancelled, go back to order detail
+      setActiveOrders(prev => ({
+        ...prev,
+        [partnerName]: { ...prev[partnerName], repeatNextWeek: false, week2Cancelled: true },
+      }));
+      setViewingOrderPartner(partnerName); // ensure order-detail has the right order
+      go('order-detail');
+    } else {
+      // Week 1 was included: remove order entirely, show partner switch
+      setCancelledPartner(partnerName);
+      setActiveOrders(prev => { const next = { ...prev }; delete next[partnerName]; return next; });
+      go('partner-switch');
+    }
+  };
+
+  const handleUpdateDeliveryDates = (partnerName, newDays) => {
+    setActiveOrders(prev => ({
+      ...prev,
+      [partnerName]: { ...prev[partnerName], days: newDays },
+    }));
+  };
+
+  const managedOrder = cancelPartner ? (activeOrders[cancelPartner] || null) : null;
+
+  const screens = {
+    home: (
+      <HomeScreen
+        onNav={handleNav}
+        onGoToMealPrep={() => go('partner-select')}
+        onGoToPartnerBrowse={handleGoToPartnerBrowse}
+        activeOrders={activeOrders}
+      />
+    ),
+    'partner-select': (
+      <PartnerSelectScreen
+        onBack={() => go('home', 'back')}
+        onSelectPartner={handleSelectPartner}
+        onNav={handleNav}
+        activeOrders={activeOrders}
+      />
+    ),
+    'meal-browse': (
+      <MealBrowseScreen
+        partner={selectedPartner || 'cookunity'}
+        onBack={swapState
+          ? () => { setSelectedMeals(prev => [...prev, ...Array(swapState.qty).fill(MEALS[selectedPartner||'cookunity'].find(m=>m.id===swapState.mealId)).filter(Boolean)]); setSwapState(null); go('checkout'); }
+          : () => go('partner-select', 'back')}
+        onContinue={handleContinue}
+        onNav={handleNav}
+        activeOrderForPartner={activeOrderForPartner}
+        preloaded={preloadedMeals}
+        swapMode={!!swapState}
+        swapFromId={swapState?.mealId}
+        onSwapComplete={handleSwapComplete}
+        initCount={mealCount}
+        addMoreMessage={addMoreMessage}
+        onCartSync={(meals) => setSelectedMeals(meals)}
+      />
+    ),
+    checkout: (
+      <CheckoutScreen
+        partner={selectedPartner}
+        selectedMeals={selectedMeals}
+        mealCount={mealCount}
+        onBack={() => { setPreloadedMeals(selectedMeals); go('meal-browse', 'back'); }}
+        onConfirm={handleConfirm}
+        onSwap={handleSwapMeal}
+        onNav={handleNav}
+        onAdjustCountUp={handleAdjustCountUp}
+        onAdjustCountDown={handleAdjustCountDown}
+      />
+    ),
+    confirmation: (
+      <ConfirmationScreen
+        order={activeOrders[selectedPartner] || {partner: selectedPartner||'cookunity', meals:[], days:['—'], total:0, repeatNextWeek:false}}
+        onSwapMeals={handleSwapMealsRecommit}
+        onNav={handleNav}
+        onHomeWithCheck={handleHomeWithCheck}
+      />
+    ),
+    'partner-switch': (
+      <PartnerSwitchScreen
+        currentPartner={cancelledPartner || selectedPartner || 'cookunity'}
+        fromCancel={!!cancelledPartner}
+        onTryOther={handleTryOther}
+        onMaybeLater={() => { setCancelledPartner(null); go('home', 'back'); }}
+      />
+    ),
+    orders: (
+      <OrdersScreen
+        activeOrders={activeOrders}
+        onManageOrder={handleManageOrder}
+        onViewOrder={handleViewOrder}
+        onNav={handleNav}
+      />
+    ),
+    'order-detail': (
+      <OrderDetailScreen
+        order={viewingOrderPartner ? activeOrders[viewingOrderPartner] : null}
+        onBack={() => go('orders', 'back')}
+        onNav={handleNav}
+        onUpdateDeliveryDates={handleUpdateDeliveryDates}
+      />
+    ),
+    'cancel-pause': (
+      <CancelPauseScreen
+        mode={cancelPauseMode}
+        order={managedOrder || {partner: cancelPartner||'cookunity', meals:[], days:['—'], total:0}}
+        onBack={() => go('orders', 'back')}
+        onNav={handleNav}
+        onCancelComplete={handleCancelComplete}
+      />
+    ),
+    account: (
+      <AccountScreen onNav={handleNav} />
+    ),
+  };
+
+  return (
+    <div className="phone-shell">
+      <div className="screen-container">
+        <div className={`screen-wrapper ${animClass}`} style={{position:'absolute',width:'100%',height:'100%'}}>
+          {screens[nav.screen] || screens.home}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
